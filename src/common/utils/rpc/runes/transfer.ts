@@ -1,4 +1,3 @@
-import { getTabIdFromPort } from '@common/utils';
 import { makeContext, openPopup } from '@common/utils/popup';
 import { type RunesTransferRequestMessage } from '@sats-connect/core';
 import RoutePaths from 'app/routes/paths';
@@ -13,7 +12,7 @@ const handleTransferRunes = async (
     data: message,
     context: makeContext(port),
     onClose: makeSendPopupClosedUserRejectionMessage({
-      tabId: getTabIdFromPort(port),
+      port,
       messageId: message.id,
     }),
   });

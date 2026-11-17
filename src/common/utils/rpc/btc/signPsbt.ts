@@ -38,7 +38,7 @@ export const handleSignPsbt = async (
 
   const { id } = await triggerRequestWindowOpen(RequestsRoutes.SignBtcTx, urlParams);
   listenForPopupClose({
-    tabId,
+    port,
     id,
     response: makeRPCError(message.id, {
       code: RpcErrorCode.USER_REJECTION,

@@ -1,5 +1,4 @@
 /* eslint-disable import/prefer-default-export */
-import { getTabIdFromPort } from '@common/utils';
 import getSelectedAccount, { embellishAccountWithDetails } from '@common/utils/getSelectedAccount';
 import { type GetAddressesRequestMessage } from '@sats-connect/core';
 import rootStore from '@stores/index';
@@ -11,8 +10,6 @@ export const handleGetAddresses = async (
   message: GetAddressesRequestMessage,
   port: chrome.runtime.Port,
 ) => {
-  const tabId = getTabIdFromPort(port);
-
   const {
     selectedAccountIndex,
     selectedAccountType,
@@ -31,7 +28,7 @@ export const handleGetAddresses = async (
   });
 
   if (!account) {
-    sendInternalErrorMessage({ tabId, messageId: message.id });
+    sendInternalErrorMessage({ recipient: port, messageId: message.id });
     return;
   }
 
@@ -41,7 +38,7 @@ export const handleGetAddresses = async (
     purposes: message.params.purposes,
   });
   sendGetAddressesSuccessResponseMessage({
-    tabId,
+    recipient: port,
     messageId: message.id,
     result: {
       addresses,

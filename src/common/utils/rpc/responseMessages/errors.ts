@@ -7,12 +7,12 @@ type InvalidParametersMessageArgs = BaseArgs & {
   error?: unknown;
 };
 export function sendInvalidParametersResponseMessage({
-  tabId,
+  recipient,
   messageId,
   error,
 }: InvalidParametersMessageArgs) {
   sendRpcResponse(
-    tabId,
+    recipient,
     makeRPCError(messageId, {
       code: RpcErrorCode.INVALID_PARAMS,
       message: `Invalid parameters.`,
@@ -21,9 +21,9 @@ export function sendInvalidParametersResponseMessage({
   );
 }
 
-export function sendInvalidStacksTransactionMessage({ tabId, messageId }: BaseArgs) {
+export function sendInvalidStacksTransactionMessage({ recipient, messageId }: BaseArgs) {
   sendRpcResponse(
-    tabId,
+    recipient,
     makeRPCError(messageId, {
       code: RpcErrorCode.INVALID_PARAMS,
       message: 'Invalid Stacks transaction.',
@@ -31,9 +31,9 @@ export function sendInvalidStacksTransactionMessage({ tabId, messageId }: BaseAr
   );
 }
 
-export function sendNetworkMismatchMessage({ tabId, messageId }: BaseArgs) {
+export function sendNetworkMismatchMessage({ recipient, messageId }: BaseArgs) {
   sendRpcResponse(
-    tabId,
+    recipient,
     makeRPCError(messageId, {
       code: RpcErrorCode.INVALID_REQUEST,
       message: 'Network mismatch.',
@@ -41,9 +41,9 @@ export function sendNetworkMismatchMessage({ tabId, messageId }: BaseArgs) {
   );
 }
 
-export function sendAddressMismatchMessage({ tabId, messageId }: BaseArgs) {
+export function sendAddressMismatchMessage({ recipient, messageId }: BaseArgs) {
   sendRpcResponse(
-    tabId,
+    recipient,
     makeRPCError(messageId, {
       code: RpcErrorCode.INVALID_REQUEST,
       message: 'Address mismatch.',
@@ -52,13 +52,13 @@ export function sendAddressMismatchMessage({ tabId, messageId }: BaseArgs) {
 }
 
 export function sendInternalErrorMessage({
-  tabId,
+  recipient,
   messageId,
   message,
   data,
 }: BaseArgs & { message?: string; data?: unknown }) {
   sendRpcResponse(
-    tabId,
+    recipient,
     makeRPCError(messageId, {
       code: RpcErrorCode.INTERNAL_ERROR,
       message: message ?? 'Internal error.',
@@ -67,9 +67,9 @@ export function sendInternalErrorMessage({
   );
 }
 
-export function sendUserRejectionMessage({ tabId, messageId }: BaseArgs) {
+export function sendUserRejectionMessage({ recipient, messageId }: BaseArgs) {
   sendRpcResponse(
-    tabId,
+    recipient,
     makeRPCError(messageId, {
       code: RpcErrorCode.USER_REJECTION,
       message: 'User rejected the request.',
@@ -77,18 +77,18 @@ export function sendUserRejectionMessage({ tabId, messageId }: BaseArgs) {
   );
 }
 
-export function sendMissingFunctionArgumentsMessage({ tabId, messageId }: BaseArgs) {
+export function sendMissingFunctionArgumentsMessage({ recipient, messageId }: BaseArgs) {
   sendRpcResponse(
-    tabId,
+    recipient,
     makeRPCError(messageId, {
       code: RpcErrorCode.INVALID_REQUEST,
       message: 'Missing function arguments.',
     }),
   );
 }
-export function sendAccessDeniedResponseMessage({ tabId, messageId }: BaseArgs) {
+export function sendAccessDeniedResponseMessage({ recipient, messageId }: BaseArgs) {
   sendRpcResponse(
-    tabId,
+    recipient,
     makeRPCError(messageId, {
       code: RpcErrorCode.ACCESS_DENIED,
       message: 'Access denied.',

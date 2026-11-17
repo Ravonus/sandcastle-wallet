@@ -21,7 +21,7 @@ const handleEtchRune = async (message: RunesEtchRequestMessage, port: chrome.run
 
   const { id } = await triggerRequestWindowOpen(RequestsRoutes.EtchRune, urlParams);
   listenForPopupClose({
-    tabId,
+    port,
     id,
     response: makeRPCError(message.id, {
       code: RpcErrorCode.USER_REJECTION,

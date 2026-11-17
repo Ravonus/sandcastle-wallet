@@ -1,5 +1,4 @@
 /* eslint-disable import/prefer-default-export */
-import { getTabIdFromPort } from '@common/utils';
 import getBitcoinClients from '@common/utils/bitcoinClients';
 import getSelectedAccount, { embellishAccountWithDetails } from '@common/utils/getSelectedAccount';
 import { safePromise, type Result } from '@common/utils/safe';
@@ -43,8 +42,6 @@ export async function handleGetBalance(
   message: GetBalanceRequestMessage,
   port: chrome.runtime.Port,
 ) {
-  const tabId = getTabIdFromPort(port);
-
   const {
     selectedAccountIndex,
     selectedAccountType,
@@ -64,7 +61,7 @@ export async function handleGetBalance(
   });
 
   if (!account) {
-    sendInternalErrorMessage({ tabId, messageId: message.id });
+    sendInternalErrorMessage({ recipient: port, messageId: message.id });
     return;
   }
 
@@ -74,7 +71,7 @@ export async function handleGetBalance(
   const [getBalanceError, balances] = await getBalance(address, network);
   if (getBalanceError) {
     sendInternalErrorMessage({
-      tabId,
+      recipient: port,
       messageId: message.id,
       message: 'Error retrieving balance.',
     });
@@ -82,7 +79,7 @@ export async function handleGetBalance(
   }
 
   sendGetBalanceSuccessResponseMessage({
-    tabId,
+    recipient: port,
     messageId: message.id,
     result: {
       confirmed: balances.confirmed.toString(),

@@ -11,6 +11,7 @@ import {
 import { error, permissions, success, type Result } from '@secretkeylabs/xverse-core';
 import { getOriginFromPort } from '..';
 import { initPermissionsStore, saveStore } from '../permissionsStore';
+import { sendPageReply } from '../replyTarget';
 
 export const makeRPCError = (id: RpcId, e: RpcError): RpcErrorResponse => ({
   jsonrpc: '2.0',
@@ -28,10 +29,10 @@ export const makeRpcSuccessResponse = <Method extends keyof Requests>(
 });
 
 export function sendRpcResponse<Method extends keyof Requests>(
-  tabId: number,
+  recipient: number | chrome.runtime.Port,
   response: RpcSuccessResponse<Method> | RpcErrorResponse,
 ) {
-  chrome.tabs.sendMessage(+tabId, {
+  sendPageReply(recipient, {
     type: contentScriptRpcResponseMessageName,
     data: response,
   });
@@ -39,17 +40,17 @@ export function sendRpcResponse<Method extends keyof Requests>(
 
 // TODO: this would probably be better off in another file
 export function makeSendPopupClosedUserRejectionMessage({
-  tabId,
+  port,
   messageId,
 }: {
-  tabId: number;
+  port: chrome.runtime.Port;
   messageId: RpcId;
 }) {
   const message = makeRPCError(messageId, {
     code: RpcErrorCode.USER_REJECTION,
     message: 'User closed the wallet popup.',
   });
-  return () => sendRpcResponse(tabId, message);
+  return () => sendRpcResponse(port, message);
 }
 
 /**

@@ -15,6 +15,7 @@ import {
 } from '../types/message-types';
 import { sendMessage } from '../types/messages';
 import popupCenter from './popup-center';
+import { replyTargetParam, sendPageReply, serializeReplyTarget } from './replyTarget';
 import RequestsRoutes from './route-urls';
 import { bitcoinApprovalParams } from './rpc/btc/regtestApproval';
 import { sendRpcResponse } from './rpc/helpers';
@@ -30,6 +31,7 @@ export function makeSearchParamsWithDefaults(port: chrome.runtime.Port, addition
   const tabId = getTabIdFromPort(port);
   urlParams.set('origin', origin ?? '');
   urlParams.set('tabId', tabId?.toString() ?? '');
+  urlParams.set(replyTargetParam, serializeReplyTarget(port));
 
   let additionalParamsEntries: ParamsKeyValueArray = [];
   if (Array.isArray(additionalParams)) {
@@ -48,19 +50,18 @@ export function makeSearchParamsWithDefaults(port: chrome.runtime.Port, addition
 interface ListenForPopupCloseArgs {
   // ID that comes from newly created window
   id?: number;
-  // TabID from requesting tab, to which request should be returned
-  tabId?: number;
+  port: chrome.runtime.Port;
   response: LegacyMessageToContentScript | SatsConnectMessageToContentScript | RpcErrorResponse;
 }
-export function listenForPopupClose({ id, tabId, response }: ListenForPopupCloseArgs) {
-  if (id === undefined || tabId === undefined) return;
+export function listenForPopupClose({ id, port, response }: ListenForPopupCloseArgs) {
+  if (id === undefined) return;
   const onRemoved = (winId: number) => {
     if (winId !== id) return;
     chrome.windows.onRemoved.removeListener(onRemoved);
     if ('jsonrpc' in response) {
-      sendRpcResponse(tabId, response);
+      sendRpcResponse(port, response);
     } else {
-      chrome.tabs.sendMessage(tabId, response);
+      sendPageReply(port, response);
     }
   };
   chrome.windows.onRemoved.addListener(onRemoved);
@@ -92,7 +93,9 @@ export function listenForOriginTabClose({ tabId }: ListenForOriginTabCloseArgs) 
 }
 
 export async function triggerRequestWindowOpen(path: RequestsRoutes, urlParams: URLSearchParams) {
-  return popupCenter({ url: `/popup.html#${path}?${urlParams.toString()}` });
+  const query = new URLSearchParams({ [replyTargetParam]: urlParams.get(replyTargetParam) ?? '' });
+  urlParams.delete(replyTargetParam);
+  return popupCenter({ url: `/popup.html?${query}#${path}?${urlParams}` });
 }
 
 export async function handleLegacyExternalMethodFormat(
@@ -116,7 +119,7 @@ export async function handleLegacyExternalMethodFormat(
         message.method === StacksLegacyMethods.structuredDataSignatureRequest
           ? StacksLegacyMethods.signatureRequest
           : message.method;
-      await chrome.tabs.sendMessage(getTabIdFromPort(port), {
+      sendPageReply(port, {
         source: MESSAGE_SOURCE,
         method,
         payload: { [requestMethod]: payload, [method]: 'cancel' },
@@ -133,7 +136,7 @@ export async function handleLegacyExternalMethodFormat(
       );
       listenForPopupClose({
         id,
-        tabId,
+        port,
         response: {
           source: MESSAGE_SOURCE,
           payload: {
@@ -153,7 +156,7 @@ export async function handleLegacyExternalMethodFormat(
       const { id } = await triggerRequestWindowOpen(RequestsRoutes.TransactionRequest, urlParams);
       listenForPopupClose({
         id,
-        tabId,
+        port,
         response: {
           source: MESSAGE_SOURCE,
           method: StacksLegacyMethods.transactionResponse,
@@ -176,7 +179,7 @@ export async function handleLegacyExternalMethodFormat(
       const { id } = await triggerRequestWindowOpen(RequestsRoutes.SignatureRequest, urlParams);
       listenForPopupClose({
         id,
-        tabId,
+        port,
         response: formatMessageSigningResponse({ request: payload, response: 'cancel' }),
       });
       listenForOriginTabClose({ tabId });
@@ -192,7 +195,7 @@ export async function handleLegacyExternalMethodFormat(
       const { id } = await triggerRequestWindowOpen(RequestsRoutes.SignatureRequest, urlParams);
       listenForPopupClose({
         id,
-        tabId,
+        port,
         response: formatMessageSigningResponse({ request: payload, response: 'cancel' }),
       });
       listenForOriginTabClose({ tabId });
@@ -206,7 +209,7 @@ export async function handleLegacyExternalMethodFormat(
       const { id } = await triggerRequestWindowOpen(RequestsRoutes.AddressRequest, urlParams);
       listenForPopupClose({
         id,
-        tabId,
+        port,
         response: {
           source: MESSAGE_SOURCE,
           payload: {
@@ -228,7 +231,7 @@ export async function handleLegacyExternalMethodFormat(
       const { id } = await triggerRequestWindowOpen(RequestsRoutes.SignBtcTx, urlParams);
       listenForPopupClose({
         id,
-        tabId,
+        port,
         response: {
           source: MESSAGE_SOURCE,
           payload: {
@@ -250,7 +253,7 @@ export async function handleLegacyExternalMethodFormat(
       const { id } = await triggerRequestWindowOpen(RequestsRoutes.SignBatchBtcTx, urlParams);
       listenForPopupClose({
         id,
-        tabId,
+        port,
         response: {
           source: MESSAGE_SOURCE,
           payload: {
@@ -272,7 +275,7 @@ export async function handleLegacyExternalMethodFormat(
       const { id } = await triggerRequestWindowOpen(RequestsRoutes.SignMessageRequest, urlParams);
       listenForPopupClose({
         id,
-        tabId,
+        port,
         response: {
           source: MESSAGE_SOURCE,
           payload: {
@@ -294,7 +297,7 @@ export async function handleLegacyExternalMethodFormat(
       const { id } = await triggerRequestWindowOpen(RequestsRoutes.SendBtcTx, urlParams);
       listenForPopupClose({
         id,
-        tabId,
+        port,
         response: {
           source: MESSAGE_SOURCE,
           payload: {
@@ -315,7 +318,7 @@ export async function handleLegacyExternalMethodFormat(
       const { id } = await triggerRequestWindowOpen(RequestsRoutes.CreateInscription, urlParams);
       listenForPopupClose({
         id,
-        tabId,
+        port,
         response: {
           source: MESSAGE_SOURCE,
           payload: {
@@ -339,7 +342,7 @@ export async function handleLegacyExternalMethodFormat(
       );
       listenForPopupClose({
         id,
-        tabId,
+        port,
         response: {
           source: MESSAGE_SOURCE,
           payload: {

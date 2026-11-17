@@ -1,5 +1,4 @@
 /* eslint-disable import/prefer-default-export */
-import { getTabIdFromPort } from '@common/utils';
 import getSelectedAccount, { embellishAccountWithDetails } from '@common/utils/getSelectedAccount';
 import { initPermissionsStore } from '@common/utils/permissionsStore';
 import { makeContext, openPopup } from '@common/utils/popup';
@@ -8,7 +7,12 @@ import { permissions } from '@secretkeylabs/xverse-core';
 import rootStore from '@stores/index';
 import RequestsRoutes from '../../route-urls';
 import { accountPurposeAddresses } from '../btc/getAddresses/utils';
-import { bitcoinApprovalSnapshot, isRegtestSessionUnlocked } from '../btc/regtestApproval';
+import {
+  bitcoinApprovalSnapshot,
+  connectorEnabled,
+  getRegtestOriginPermission,
+  isRegtestSessionUnlocked,
+} from '../btc/regtestApproval';
 import { makeSendPopupClosedUserRejectionMessage } from '../helpers';
 import { sendInternalErrorMessage } from '../responseMessages/errors';
 import { sendConnectSuccessResponseMessage } from '../responseMessages/wallet';
@@ -18,7 +22,8 @@ export const handleConnect = async (
   port: chrome.runtime.Port,
   localRegtestConnector = false,
 ) => {
-  const { origin, tabId } = makeContext(port);
+  const context = makeContext(port);
+  const { origin } = context;
   const state = rootStore.store.getState().walletState;
   // Check if the user already has account & network read permissions, and if
   // so, return the account data without opening the popup.
@@ -31,7 +36,7 @@ export const handleConnect = async (
   const [error, store] = await initPermissionsStore();
   if (error) {
     sendInternalErrorMessage({
-      tabId: getTabIdFromPort(port),
+      recipient: port,
       messageId: message.id,
       message: 'Error loading permissions store.',
     });
@@ -58,7 +63,7 @@ export const handleConnect = async (
 
   if (!account) {
     sendInternalErrorMessage({
-      tabId: getTabIdFromPort(port),
+      recipient: port,
       messageId: message.id,
       message: 'Failed to get selected account.',
     });
@@ -68,7 +73,7 @@ export const handleConnect = async (
   const [clientIdError, clientId] = permissions.utils.store.makeClientId({ origin });
   if (clientIdError) {
     sendInternalErrorMessage({
-      tabId: getTabIdFromPort(port),
+      recipient: port,
       messageId: message.id,
       message: 'Failed to create client ID during permissons check.',
     });
@@ -108,17 +113,28 @@ export const handleConnect = async (
       path: RequestsRoutes.ConnectionRequest,
       data: { ...message, params: { ...message.params, addresses: purposes } },
       context: {
-        origin,
-        tabId,
+        ...context,
         localRegtestConnector,
         bitcoinApproval: localRegtestConnector ? bitcoinApprovalSnapshot(state) : undefined,
       },
       onClose: makeSendPopupClosedUserRejectionMessage({
-        tabId: getTabIdFromPort(port),
+        port,
         messageId: message.id,
       }),
     });
     return;
+  }
+
+  if (localRegtestConnector) {
+    const latest = rootStore.store.getState().walletState;
+    if (
+      !connectorEnabled(latest) ||
+      bitcoinApprovalSnapshot(latest) !== bitcoinApprovalSnapshot(state) ||
+      !(await getRegtestOriginPermission(latest, origin))?.allowed ||
+      latest !== rootStore.store.getState().walletState
+    ) {
+      throw new Error('The Regtest connection changed.');
+    }
   }
 
   const embellishedAccount = embellishAccountWithDetails(account, btcPaymentAddressType);
@@ -137,7 +153,7 @@ export const handleConnect = async (
     },
   };
   sendConnectSuccessResponseMessage({
-    tabId: getTabIdFromPort(port),
+    recipient: port,
     messageId: message.id,
     result,
   });

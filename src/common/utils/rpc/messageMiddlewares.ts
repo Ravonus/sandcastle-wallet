@@ -3,7 +3,6 @@ import type { PermissionWithoutClientId, RpcRequestMessage } from '@sats-connect
 import { permissions } from '@secretkeylabs/xverse-core';
 import rootStore from '@stores/index';
 import * as v from 'valibot';
-import { getTabIdFromPort } from '..';
 import getSelectedAccount from '../getSelectedAccount';
 import { initPermissionsStore } from '../permissionsStore';
 import { makeContext } from '../popup';
@@ -35,12 +34,12 @@ export function requirePermissions(
   handler: (message: RpcRequestMessage, port: chrome.runtime.Port) => Promise<void>,
 ) {
   return async (message: RpcRequestMessage, port: chrome.runtime.Port): Promise<void> => {
-    const { origin, tabId } = makeContext(port);
+    const { origin } = makeContext(port);
 
     const [error, store] = await initPermissionsStore();
     if (error) {
       sendInternalErrorMessage({
-        tabId,
+        recipient: port,
         messageId: message.id,
         message: 'Error loading permissions store.',
       });
@@ -65,7 +64,7 @@ export function requirePermissions(
 
     if (!existingAccount) {
       sendInternalErrorMessage({
-        tabId: getTabIdFromPort(port),
+        recipient: port,
         messageId: message.id,
         message: 'Failed to get selected account.',
       });
@@ -75,7 +74,7 @@ export function requirePermissions(
     const [clientIdError, clientId] = permissions.utils.store.makeClientId({ origin });
     if (clientIdError) {
       sendInternalErrorMessage({
-        tabId,
+        recipient: port,
         messageId: message.id,
         message: 'Failed to create client ID during permissons check.',
       });
@@ -101,7 +100,7 @@ export function requirePermissions(
     );
 
     if (!hasRequiredPermissions) {
-      sendAccessDeniedResponseMessage({ tabId, messageId: message.id });
+      sendAccessDeniedResponseMessage({ recipient: port, messageId: message.id });
       return;
     }
 
@@ -118,7 +117,7 @@ export function validateMessageSchema<
   return async (message: RpcRequestMessage, port: chrome.runtime.Port) => {
     const parseResult = v.safeParse(schema, message);
     if (!parseResult.success) {
-      handleInvalidMessage(message, getTabIdFromPort(port), parseResult.issues);
+      handleInvalidMessage(message, port, parseResult.issues);
       return;
     }
     return handler(parseResult.output, port);

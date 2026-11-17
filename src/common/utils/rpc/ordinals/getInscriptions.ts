@@ -1,4 +1,3 @@
-import { getTabIdFromPort } from '@common/utils';
 import getBitcoinClients from '@common/utils/bitcoinClients';
 import getSelectedAccount from '@common/utils/getSelectedAccount';
 import { RpcErrorCode, type GetInscriptionsRequestMessage } from '@sats-connect/core';
@@ -10,8 +9,6 @@ const handleGetInscriptions = async (
   message: GetInscriptionsRequestMessage,
   port: chrome.runtime.Port,
 ) => {
-  const tabId = getTabIdFromPort(port);
-
   const {
     selectedAccountIndex,
     selectedAccountType,
@@ -31,7 +28,7 @@ const handleGetInscriptions = async (
 
   if (!existingAccount) {
     sendRpcResponse(
-      tabId,
+      port,
       makeRPCError(message.id, {
         code: RpcErrorCode.INTERNAL_ERROR,
         message: 'Could not find selected account.',
@@ -52,7 +49,7 @@ const handleGetInscriptions = async (
       message.params.limit,
     );
     sendRpcResponse(
-      tabId,
+      port,
       makeRpcSuccessResponse<'ord_getInscriptions'>(message.id, {
         total: inscriptionsList.total,
         limit: inscriptionsList.limit,
@@ -74,7 +71,7 @@ const handleGetInscriptions = async (
     );
   } catch (error) {
     sendRpcResponse(
-      tabId,
+      port,
       makeRPCError(message.id, {
         code: RpcErrorCode.INTERNAL_ERROR,
         message: (error as any).message,

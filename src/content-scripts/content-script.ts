@@ -50,13 +50,15 @@ window.addEventListener('message', (event) => {
 // Connection to background script - fires onConnect event in background script
 // and establishes two-way communication
 let backgroundPort: chrome.runtime.Port;
+const documentToken = Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) =>
+  byte.toString(16).padStart(2, '0'),
+).join('');
 
 function connect() {
   backgroundPort = chrome.runtime.connect({ name: CONTENT_SCRIPT_PORT });
   backgroundPort.onDisconnect.addListener(connect);
+  backgroundPort.onMessage.addListener(deliverResponse);
 }
-
-connect();
 
 const legacyResponseSchema = v.object({
   source: v.literal(MESSAGE_SOURCE),
@@ -64,7 +66,7 @@ const legacyResponseSchema = v.object({
   payload: v.record(v.string(), v.unknown()),
 });
 
-chrome.runtime.onMessage.addListener((message: unknown) => {
+function deliverResponse(message: unknown) {
   if (v.is(contentScriptWalletEventMessageSchema, message)) {
     window.dispatchEvent(new CustomEvent(walletEventName, { detail: message.data }));
   } else if (v.is(contentScriptRpcResponseMessageSchema, message)) {
@@ -72,14 +74,26 @@ chrome.runtime.onMessage.addListener((message: unknown) => {
   } else if (v.is(legacyResponseSchema, message) && message.method.endsWith('Response')) {
     postPageResponse(LEGACY_RESPONSE_CHANNEL, message);
   }
+}
+
+chrome.runtime.onMessage.addListener((envelope, _sender, sendResponse) => {
+  if (v.is(contentScriptWalletEventMessageSchema, envelope)) {
+    deliverResponse(envelope);
+    return;
+  }
+  if (envelope?.token !== documentToken || envelope.origin !== window.location.origin) return;
+  if (envelope.ping) sendResponse(true);
+  else deliverResponse(envelope.message);
 });
+
+connect();
 
 function forwardDomEventToBackground(
   method: LegacyMessageFromContentScript['method'] | SatsConnectMessageFromContentScript['method'],
   payload: unknown,
 ) {
   if (typeof payload !== 'string') return;
-  backgroundPort.postMessage({ method, payload, source: MESSAGE_SOURCE });
+  backgroundPort.postMessage({ method, payload, source: MESSAGE_SOURCE, documentToken });
 }
 
 // Listen for a CustomEvent (auth request) coming from the web app
@@ -174,7 +188,7 @@ document.addEventListener(DomEventName.createRepeatInscriptionsRequest, ((
 document.addEventListener(DomEventName.rpcRequest, (event) => {
   const request = v.safeParse(rpcRequestMessageSchema, (event as CustomEvent<unknown>).detail);
   if (request.success) {
-    backgroundPort.postMessage({ ...request.output, source: MESSAGE_SOURCE });
+    backgroundPort.postMessage({ ...request.output, source: MESSAGE_SOURCE, documentToken });
   }
 });
 

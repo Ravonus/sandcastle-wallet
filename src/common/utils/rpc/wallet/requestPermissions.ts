@@ -1,5 +1,4 @@
 /* eslint-disable import/prefer-default-export */
-import { getTabIdFromPort } from '@common/utils';
 import { type RequestPermissionsRequestMessage } from '@sats-connect/core';
 import { sendInternalErrorMessage } from '../responseMessages/errors';
 import { handleConnect } from './connect';
@@ -20,7 +19,7 @@ export const handleRequestPermissions = async (
 
   // Handling requests for specific permissions has not yet been implemented.
   sendInternalErrorMessage({
-    tabId: getTabIdFromPort(port),
+    recipient: port,
     messageId: message.id,
     message:
       'The wallet does not yet support requesting individual permissions. ' +

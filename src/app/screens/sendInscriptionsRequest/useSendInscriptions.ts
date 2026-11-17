@@ -135,7 +135,7 @@ const useSendInscriptions = () => {
   };
 
   const cancelOrdinalsTransferRequest = async () => {
-    sendUserRejectionMessage({ tabId: +tabId, messageId: id });
+    sendUserRejectionMessage({ recipient: +tabId, messageId: id });
   };
 
   return {

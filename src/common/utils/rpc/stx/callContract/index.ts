@@ -26,7 +26,7 @@ async function callContract(message: StxCallContractRequestMessage, port: chrome
   const { id } = await triggerRequestWindowOpen(RequestsRoutes.TransactionRequest, urlParams);
 
   listenForPopupClose({
-    tabId,
+    port,
     id,
     response: {
       ...makeRPCError(message.id, {

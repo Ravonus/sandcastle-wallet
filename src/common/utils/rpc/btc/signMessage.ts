@@ -29,7 +29,7 @@ export const handleSignMessage = async (
 
   const { id } = await triggerRequestWindowOpen(RequestsRoutes.SignMessageRequest, urlParams);
   listenForPopupClose({
-    tabId,
+    port,
     id,
     response: makeRPCError(message.id, {
       code: RpcErrorCode.USER_REJECTION,

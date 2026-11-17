@@ -1,4 +1,3 @@
-import { getTabIdFromPort } from '@common/utils';
 import { makeContext, openPopup } from '@common/utils/popup';
 import type { SendInscriptionsRequestMessage } from '@sats-connect/core';
 import RoutePaths from 'app/routes/paths';
@@ -13,7 +12,7 @@ const handleSendInscriptions = async (
     data: message,
     context: makeContext(port),
     onClose: makeSendPopupClosedUserRejectionMessage({
-      tabId: getTabIdFromPort(port),
+      port,
       messageId: message.id,
     }),
   });

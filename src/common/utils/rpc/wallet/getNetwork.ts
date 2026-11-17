@@ -1,4 +1,3 @@
-import { getTabIdFromPort } from '@common/utils';
 import type { GetNetworkRequestMessage, GetNetworkResult } from '@sats-connect/core';
 import rootStore from '@stores/index';
 import { sendGetNetworkSuccessResponseMessage } from '../responseMessages/wallet';
@@ -17,7 +16,7 @@ export function handleGetNetwork(message: GetNetworkRequestMessage, port: chrome
   };
 
   sendGetNetworkSuccessResponseMessage({
-    tabId: getTabIdFromPort(port),
+    recipient: port,
     messageId: message.id,
     result,
   });

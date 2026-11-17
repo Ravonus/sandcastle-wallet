@@ -9,12 +9,12 @@ export async function handleGetPermissions(
   message: GetCurrentPermissionsRequestMessage,
   port: chrome.runtime.Port,
 ) {
-  const { origin, tabId } = makeContext(port);
+  const { origin } = makeContext(port);
 
   const [error, store] = await initPermissionsStore();
   if (error) {
     sendInternalErrorMessage({
-      tabId,
+      recipient: port,
       messageId: message.id,
       message: 'Error loading permissions store.',
     });
@@ -24,7 +24,7 @@ export async function handleGetPermissions(
   const [clientIdError, clientId] = permissions.utils.store.makeClientId({ origin });
   if (clientIdError) {
     sendInternalErrorMessage({
-      tabId,
+      recipient: port,
       messageId: message.id,
       message: 'Error creating client ID.',
     });
@@ -32,7 +32,7 @@ export async function handleGetPermissions(
   }
 
   sendGetCurrentPermissionsSuccessResponseMessage({
-    tabId,
+    recipient: port,
     messageId: message.id,
     result: permissions.utils.store.getClientPermissions(store, clientId),
   });

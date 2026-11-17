@@ -1,4 +1,5 @@
 import { MESSAGE_SOURCE } from '@common/types/message-types';
+import { sendPageReply } from '@common/utils/replyTarget';
 import { sendGetAddressesSuccessResponseMessage } from '@common/utils/rpc/responseMessages/stacks';
 import useWalletSelector from '@hooks/useWalletSelector';
 import { AddressPurpose, AddressType, type GetAddressOptions } from '@sats-connect/core';
@@ -50,14 +51,14 @@ const useStxAddressRequest = () => {
 
     if (rpcMethod === 'stx_getAddresses') {
       sendGetAddressesSuccessResponseMessage({
-        tabId,
+        recipient: tabId,
         messageId,
         result: response,
       });
       return;
     }
 
-    chrome.tabs.sendMessage(+tabId, addressMessage);
+    sendPageReply(+tabId, addressMessage);
   }, [stxAddress, stxPublicKey, requestToken, tabId]);
   const cancelAddressRequest = useCallback(() => {
     const addressMessage = {
@@ -65,7 +66,7 @@ const useStxAddressRequest = () => {
       method: 'stx_getAddresses',
       payload: { addressRequest: requestToken, addressResponse: 'cancel' },
     };
-    chrome.tabs.sendMessage(+tabId, addressMessage);
+    sendPageReply(+tabId, addressMessage);
   }, [requestToken, tabId]);
 
   if (rpcMethod === 'stx_getAddresses') {

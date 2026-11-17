@@ -22,7 +22,7 @@ async function transferStx(message: StxTransferStxRequestMessage, port: chrome.r
   const { id } = await triggerRequestWindowOpen(RequestsRoutes.TransactionRequest, urlParams);
 
   listenForPopupClose({
-    tabId,
+    port,
     id,
     response: {
       ...makeRPCError(message.id, {

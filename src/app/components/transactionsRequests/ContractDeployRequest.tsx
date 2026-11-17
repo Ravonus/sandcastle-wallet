@@ -145,7 +145,7 @@ export default function ContractDeployRequest({
         switch (rpcMethod) {
           case 'stx_signTransaction': {
             sendSignTransactionSuccessResponseMessage({
-              tabId,
+              recipient: tabId,
               messageId,
               result: { transaction: tx[0].serialize() },
             });
@@ -153,14 +153,14 @@ export default function ContractDeployRequest({
           }
           case 'stx_deployContract': {
             sendDeployContractSuccessResponseMessage({
-              tabId,
+              recipient: tabId,
               messageId,
               result: { txid: txId, transaction: tx[0].serialize() },
             });
             break;
           }
           default:
-            sendInternalErrorMessage({ tabId, messageId });
+            sendInternalErrorMessage({ recipient: tabId, messageId });
             break;
         }
         if (!broadcastAfterSigning) window.close();
@@ -184,7 +184,7 @@ export default function ContractDeployRequest({
       });
     } catch (error: any) {
       setLoaderForBroadcastingTx(false);
-      sendInternalErrorMessage({ tabId, messageId });
+      sendInternalErrorMessage({ recipient: tabId, messageId });
       navigate('/tx-status', {
         state: {
           txid: '',
@@ -204,17 +204,17 @@ export default function ContractDeployRequest({
         switch (rpcMethod) {
           case 'stx_signTransaction':
             sendSignTransactionSuccessResponseMessage({
-              tabId,
+              recipient: tabId,
               messageId,
               result: { transaction: unsignedTx.serialize() },
             });
             break;
           default:
-            sendInternalErrorMessage({ tabId, messageId });
+            sendInternalErrorMessage({ recipient: tabId, messageId });
             break;
         }
         sendSignTransactionSuccessResponseMessage({
-          tabId,
+          recipient: tabId,
           messageId,
           result: { transaction: unsignedTx.serialize() },
         });
@@ -232,13 +232,13 @@ export default function ContractDeployRequest({
         switch (rpcMethod) {
           case 'stx_signTransaction':
             sendSignTransactionSuccessResponseMessage({
-              tabId,
+              recipient: tabId,
               messageId,
               result: { transaction: unsignedTx.serialize() },
             });
             break;
           default:
-            sendInternalErrorMessage({ tabId, messageId });
+            sendInternalErrorMessage({ recipient: tabId, messageId });
             break;
         }
       } else {
@@ -265,7 +265,7 @@ export default function ContractDeployRequest({
 
   const cancelCallback = () => {
     if (rpcMethod && messageId && tabId) {
-      sendUserRejectionMessage({ tabId, messageId });
+      sendUserRejectionMessage({ recipient: tabId, messageId });
     }
     finalizeTxSignature({ requestPayload: requestToken, tabId, data: 'cancel' });
     window.close();

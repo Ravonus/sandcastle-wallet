@@ -1,3 +1,4 @@
+import { sendPageReply } from '@common/utils/replyTarget';
 /* eslint-disable import/prefer-default-export */
 import {
   MESSAGE_SOURCE,
@@ -32,6 +33,6 @@ export function finalizeMessageSignature({
   tabId,
 }: FinalizeMessageSignatureArgs) {
   const responseMessage = formatMessageSigningResponse({ request: requestPayload, response: data });
-  chrome.tabs.sendMessage(tabId, responseMessage);
+  sendPageReply(tabId, responseMessage);
   window.close();
 }

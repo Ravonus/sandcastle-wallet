@@ -1,5 +1,6 @@
 import getSelectedAccount, { embellishAccountWithDetails } from '@common/utils/getSelectedAccount';
 import { initPermissionsStore } from '@common/utils/permissionsStore';
+import { isReplyDocumentActive } from '@common/utils/replyTarget';
 import {
   permissions,
   SeedVaultStorageKeys,
@@ -102,11 +103,9 @@ export async function assertBitcoinApproval(params: URLSearchParams) {
   if (params.get('localRegtestConnector') !== 'true') return;
 
   const origin = params.get('origin') ?? '';
-  const tab = await chrome.tabs.get(Number(params.get('tabId')));
   if (
     !connectorEnabled(state) ||
-    !tab.url ||
-    new URL(tab.url).origin !== origin ||
+    !(await isReplyDocumentActive(Number(params.get('tabId')))) ||
     !(await isRegtestSessionUnlocked(state)) ||
     !(await getRegtestOriginPermission(state, origin))?.allowed
   ) {

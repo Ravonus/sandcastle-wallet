@@ -1,4 +1,3 @@
-import { getTabIdFromPort } from '@common/utils';
 import getSelectedAccount from '@common/utils/getSelectedAccount';
 import { RpcErrorCode, type runesGetBalanceRequestMessage } from '@sats-connect/core';
 import { getRunesClient } from '@secretkeylabs/xverse-core';
@@ -9,8 +8,6 @@ const handleGetRunesBalance = async (
   message: runesGetBalanceRequestMessage,
   port: chrome.runtime.Port,
 ) => {
-  const tabId = getTabIdFromPort(port);
-
   const {
     selectedAccountIndex,
     selectedAccountType,
@@ -30,7 +27,7 @@ const handleGetRunesBalance = async (
 
   if (!existingAccount) {
     sendRpcResponse(
-      tabId,
+      port,
       makeRPCError(message.id, {
         code: RpcErrorCode.INTERNAL_ERROR,
         message: 'Could not find selected account.',
@@ -46,7 +43,7 @@ const handleGetRunesBalance = async (
       existingAccount.btcAddresses.taproot.address,
     );
     sendRpcResponse(
-      tabId,
+      port,
       makeRpcSuccessResponse<'runes_getBalance'>(message.id, {
         balances: runesBalances.map((runeBalance) => ({
           ...runeBalance,
@@ -56,7 +53,7 @@ const handleGetRunesBalance = async (
     );
   } catch (error) {
     sendRpcResponse(
-      tabId,
+      port,
       makeRPCError(message.id, {
         code: RpcErrorCode.INTERNAL_ERROR,
         message: (error as any).message,

@@ -1,5 +1,4 @@
 /* eslint-disable import/prefer-default-export */
-import { getTabIdFromPort } from '@common/utils';
 import { makeContext, openPopup } from '@common/utils/popup';
 import RequestsRoutes from '@common/utils/route-urls';
 import { type StxSignTransactionRequestMessage } from '@sats-connect/core';
@@ -12,7 +11,7 @@ export async function signTransaction(
   port: chrome.runtime.Port,
 ) {
   if (!isValidStacksTransaction(message.params.transaction)) {
-    sendInvalidStacksTransactionMessage({ tabId: getTabIdFromPort(port), messageId: message.id });
+    sendInvalidStacksTransactionMessage({ recipient: port, messageId: message.id });
     return;
   }
 
@@ -21,7 +20,7 @@ export async function signTransaction(
     data: message,
     context: makeContext(port),
     onClose: makeSendPopupClosedUserRejectionMessage({
-      tabId: getTabIdFromPort(port),
+      port,
       messageId: message.id,
     }),
   });

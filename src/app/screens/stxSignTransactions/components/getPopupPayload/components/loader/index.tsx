@@ -24,7 +24,7 @@ export function Loader({ data, context }: Loader2Props) {
   const handleReviewCancel = useCallback(() => {
     sendUserRejectionMessage({
       messageId: data.id,
-      tabId: context.tabId,
+      recipient: context.tabId,
     });
     window.close();
   }, [data.id, context.tabId]);

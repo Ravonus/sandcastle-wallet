@@ -6,75 +6,75 @@ type SignTransactionSuccessArgs = BaseArgs & {
   result: Return<'stx_signTransaction'>;
 };
 export function sendSignTransactionSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: SignTransactionSuccessArgs) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type CallContractSuccessArgs = BaseArgs & {
   result: Return<'stx_callContract'>;
 };
 export function sendCallContractSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: CallContractSuccessArgs) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type StxTransferSuccessArgs = BaseArgs & {
   result: Return<'stx_transferStx'>;
 };
 export function sendStxTransferSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: StxTransferSuccessArgs) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type GetAccountsSuccess = BaseArgs & {
   result: Return<'stx_getAccounts'>;
 };
 export function sendGetAccountsSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: GetAccountsSuccess) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type GetAddressesSuccess = BaseArgs & {
   result: Return<'stx_getAddresses'>;
 };
 export function sendGetAddressesSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: GetAddressesSuccess) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type DeployContractSuccessArgs = BaseArgs & {
   result: Return<'stx_deployContract'>;
 };
 export function sendDeployContractSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: DeployContractSuccessArgs) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type SignTransactionsSuccessArgs = BaseArgs & {
   result: Return<'stx_signTransactions'>;
 };
 export function sendSignTransactionsSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: SignTransactionsSuccessArgs) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }

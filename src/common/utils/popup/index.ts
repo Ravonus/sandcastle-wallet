@@ -4,6 +4,7 @@ import { sendMessage } from '@common/types/messages';
 import { error, success, type Result } from '@secretkeylabs/xverse-core';
 import * as v from 'valibot';
 import { getOriginFromPort, getTabIdFromPort } from '..';
+import { replyTargetParam, serializeReplyTarget } from '../replyTarget';
 
 const contextSchema = v.object({
   /**
@@ -14,6 +15,7 @@ const contextSchema = v.object({
 
   /** The tab that initiated the request being sent to the popup. */
   tabId: v.number(),
+  replyTarget: v.optional(v.string()),
   localRegtestConnector: v.optional(v.boolean()),
   bitcoinApproval: v.optional(v.string()),
 });
@@ -75,6 +77,7 @@ const popupPaylodUrlParamName = 'p';
  */
 export async function openPopup<TPopupData>(options: Options<TPopupData>) {
   const search = new URLSearchParams();
+  if (options.context.replyTarget) search.set(replyTargetParam, options.context.replyTarget);
   search.append(
     popupPaylodUrlParamName,
     stringify({ context: options.context, data: options.data }),
@@ -125,6 +128,7 @@ export function makeContext(port: chrome.runtime.Port): Context {
   return {
     origin: getOriginFromPort(port),
     tabId: getTabIdFromPort(port),
+    replyTarget: serializeReplyTarget(port),
   };
 }
 

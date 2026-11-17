@@ -4,6 +4,7 @@ import ledgerConnectDefaultIcon from '@assets/img/hw/ledger/ledger_connect_defau
 import ledgerConnectStxIcon from '@assets/img/hw/ledger/ledger_import_connect_stx.svg';
 import { MESSAGE_SOURCE } from '@common/types/message-types';
 import { delay } from '@common/utils/promises';
+import { sendPageReply } from '@common/utils/replyTarget';
 import BottomModal from '@components/bottomModal';
 import ActionButton from '@components/button';
 import LedgerConnectionView from '@components/ledger/connectLedgerView';
@@ -141,7 +142,7 @@ function AuthenticationRequest() {
           btcAddress: selectedAccount?.btcAddress,
         },
       );
-      chrome.tabs.sendMessage(+(params.get('tabId') ?? '0'), {
+      sendPageReply(+(params.get('tabId') ?? '0'), {
         source: MESSAGE_SOURCE,
         payload: {
           authenticationRequest: authRequestToken,
@@ -158,7 +159,7 @@ function AuthenticationRequest() {
   };
 
   const cancelCallback = () => {
-    chrome.tabs.sendMessage(+(params.get('tabId') ?? '0'), {
+    sendPageReply(+(params.get('tabId') ?? '0'), {
       source: MESSAGE_SOURCE,
       payload: {
         authenticationRequest: authRequestToken,
@@ -219,7 +220,7 @@ function AuthenticationRequest() {
       });
       setIsTxApproved(true);
       await delay(1500);
-      chrome.tabs.sendMessage(+(params.get('tabId') ?? '0'), {
+      sendPageReply(+(params.get('tabId') ?? '0'), {
         source: MESSAGE_SOURCE,
         payload: {
           authenticationRequest: authRequestToken,

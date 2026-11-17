@@ -1,5 +1,4 @@
 /* eslint-disable import/prefer-default-export */
-import { getTabIdFromPort } from '@common/utils';
 import getSelectedAccount, { embellishAccountWithDetails } from '@common/utils/getSelectedAccount';
 import { type GetAccountRequestMessage, type GetAccountResult } from '@sats-connect/core';
 import { permissions } from '@secretkeylabs/xverse-core';
@@ -32,7 +31,7 @@ export async function handleGetAccount(
 
   if (!account) {
     sendInternalErrorMessage({
-      tabId: getTabIdFromPort(port),
+      recipient: port,
       messageId: message.id,
       message: 'Failed to get selected account.',
     });
@@ -53,7 +52,7 @@ export async function handleGetAccount(
     addresses,
   };
   sendGetAccountSuccessResponseMessage({
-    tabId: getTabIdFromPort(port),
+    recipient: port,
     messageId: message.id,
     result,
   });

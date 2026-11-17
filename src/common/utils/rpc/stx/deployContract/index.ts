@@ -26,7 +26,7 @@ async function deployContract(message: StxDeployContractRequestMessage, port: ch
   const { id } = await triggerRequestWindowOpen(RequestsRoutes.TransactionRequest, urlParams);
 
   listenForPopupClose({
-    tabId,
+    port,
     id,
     response: {
       ...makeRPCError(message.id, {

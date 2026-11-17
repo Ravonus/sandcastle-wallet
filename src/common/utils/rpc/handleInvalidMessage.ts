@@ -4,15 +4,9 @@ import { sendInvalidParametersResponseMessage } from './responseMessages/errors'
 // eslint-disable-next-line import/prefer-default-export
 export function handleInvalidMessage(
   message: RpcRequestMessage,
-  tabId: chrome.tabs.Tab['id'],
+  port: chrome.runtime.Port,
   error: unknown,
 ) {
-  if (!tabId) {
-    // eslint-disable-next-line no-console
-    console.warn('No tab ID provided, unable to send RPC response.');
-    return;
-  }
-
   const messageId = message.id;
   if (!messageId) {
     // eslint-disable-next-line no-console
@@ -28,7 +22,7 @@ export function handleInvalidMessage(
 
   // TODO: is this the best response available for invalid messages?
   sendInvalidParametersResponseMessage({
-    tabId,
+    recipient: port,
     messageId,
     error,
   });

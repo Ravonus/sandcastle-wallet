@@ -198,7 +198,7 @@ function TransactionRequest() {
       // eslint-disable-next-line no-console
       console.error(e);
       toast.error('Unexpected error creating transaction');
-      sendInternalErrorMessage({ tabId, messageId });
+      sendInternalErrorMessage({ recipient: tabId, messageId });
     }
   };
 

@@ -234,7 +234,7 @@ function TransactionStatus() {
     if (browserTx) {
       // TODO: refactor this to not use the error label. Needs to be something more explicit.
       if (error === tReqErrors('NETWORK_MISMATCH') && tabId && messageId)
-        sendNetworkMismatchMessage({ tabId, messageId });
+        sendNetworkMismatchMessage({ recipient: tabId, messageId });
       if (
         (error === tReqErrors('ADDRESS_MISMATCH') ||
           error === tReqErrors('ADDRESS_TYPE_MISMATCH') ||
@@ -242,9 +242,9 @@ function TransactionStatus() {
         tabId &&
         messageId
       )
-        sendAddressMismatchMessage({ tabId, messageId });
+        sendAddressMismatchMessage({ recipient: tabId, messageId });
       if (error === tReqErrors('MISSING_ARGUMENTS') && tabId && messageId)
-        sendMissingFunctionArgumentsMessage({ tabId, messageId });
+        sendMissingFunctionArgumentsMessage({ recipient: tabId, messageId });
       window.close();
     } else if (isRareSat) navigate('/nft-dashboard?tab=rareSats');
     else if (isOrdinal) navigate('/nft-dashboard?tab=inscriptions');

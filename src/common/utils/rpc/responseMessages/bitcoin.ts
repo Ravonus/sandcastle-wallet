@@ -8,31 +8,31 @@ type GetBalanceSuccess = BaseArgs & {
   result: Return<'getBalance'>;
 };
 export function sendGetBalanceSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: GetBalanceSuccess) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type GetAddressesSuccess = BaseArgs & {
   result: Return<'getAddresses'>;
 };
 export function sendGetAddressesSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: GetAddressesSuccess) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type SignMessageSuccess = BaseArgs & {
   result: Return<'signMessage'>;
 };
 export function sendSignMessageSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: SignMessageSuccess) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }

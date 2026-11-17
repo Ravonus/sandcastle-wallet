@@ -1,4 +1,5 @@
 import { MESSAGE_SOURCE } from '@common/types/message-types';
+import { sendPageReply } from '@common/utils/replyTarget';
 
 import { sendUserRejectionMessage } from '@common/utils/rpc/responseMessages/errors';
 import { sendGetAccountsSuccessResponseMessage } from '@common/utils/rpc/responseMessages/stacks';
@@ -68,15 +69,15 @@ const useStxAccountRequest = () => {
     };
 
     if (rpcMethod === 'stx_getAccounts') {
-      sendGetAccountsSuccessResponseMessage({ tabId, messageId, result: response });
+      sendGetAccountsSuccessResponseMessage({ recipient: tabId, messageId, result: response });
       return;
     }
 
-    chrome.tabs.sendMessage(+tabId, addressMessage);
+    sendPageReply(+tabId, addressMessage);
   }, [getSeed, stxAddress, stxPublicKey, requestToken, tabId, messageId, rpcMethod]);
   const cancelAccountRequest = useCallback(() => {
     if (rpcMethod === 'stx_getAccounts') {
-      sendUserRejectionMessage({ tabId, messageId });
+      sendUserRejectionMessage({ recipient: tabId, messageId });
       return;
     }
 
@@ -85,7 +86,7 @@ const useStxAccountRequest = () => {
       method: 'stx_getAccounts',
       payload: { addressRequest: requestToken, addressResponse: 'cancel' },
     };
-    chrome.tabs.sendMessage(+tabId, addressMessage);
+    sendPageReply(+tabId, addressMessage);
   }, [requestToken, tabId]);
 
   if (rpcMethod === 'stx_getAccounts') {

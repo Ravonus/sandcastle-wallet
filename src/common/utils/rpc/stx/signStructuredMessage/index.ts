@@ -24,7 +24,7 @@ async function handleStacksSignStructuredMessage(
   const { id } = await triggerRequestWindowOpen(RequestsRoutes.SignatureRequest, urlParams);
 
   listenForPopupClose({
-    tabId,
+    port,
     id,
     response: {
       ...makeRPCError(message.id, {

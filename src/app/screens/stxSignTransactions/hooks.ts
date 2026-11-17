@@ -65,7 +65,7 @@ export function useGetMakeSendRpcSuccessResponse() {
     ({ tabId, messageId }) =>
       (transactions: StacksTransactionWire[]) => {
         sendSignTransactionsSuccessResponseMessage({
-          tabId,
+          recipient: tabId,
           messageId,
           result: {
             transactions: transactions.map((transaction) => transaction.serialize()),

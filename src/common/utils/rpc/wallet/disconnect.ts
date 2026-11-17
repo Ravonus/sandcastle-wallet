@@ -11,12 +11,12 @@ export const handleDisconnect = async (
   message: DisconnectRequestMessage,
   port: chrome.runtime.Port,
 ) => {
-  const { origin, tabId } = makeContext(port);
+  const { origin } = makeContext(port);
   const [error, store] = await initPermissionsStore();
 
   if (error) {
     sendInternalErrorMessage({
-      tabId,
+      recipient: port,
       messageId: message.id,
       message: 'Error loading permissions store.',
     });
@@ -26,7 +26,7 @@ export const handleDisconnect = async (
   const [clientIdError, clientId] = permissions.utils.store.makeClientId({ origin });
   if (clientIdError) {
     sendInternalErrorMessage({
-      tabId,
+      recipient: port,
       messageId: message.id,
       message: 'Error creating client ID.',
     });
@@ -40,7 +40,7 @@ export const handleDisconnect = async (
   });
 
   sendRenouncePermissionsSuccessResponseMessage({
-    tabId,
+    recipient: port,
     messageId: message.id,
     result: null,
   });

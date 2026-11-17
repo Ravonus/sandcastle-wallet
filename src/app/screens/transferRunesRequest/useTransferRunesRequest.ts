@@ -131,7 +131,7 @@ const useTransferRunes = ({ tabId, messageId, recipients }: Args) => {
   );
 
   const cancelRunesTransferRequest = useCallback(async () => {
-    sendUserRejectionMessage({ tabId, messageId });
+    sendUserRejectionMessage({ recipient: tabId, messageId });
   }, [messageId, tabId]);
 
   return {

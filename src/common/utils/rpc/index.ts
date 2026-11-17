@@ -1,7 +1,6 @@
 import { RpcErrorCode, type RpcRequestMessage } from '@sats-connect/core';
 import { safePromise } from '@secretkeylabs/xverse-core';
 import rootStore from '@stores/index';
-import { getTabIdFromPort } from '..';
 import { router } from './handlerRouter';
 import { router as runesRouter } from './handlerRouter/runes';
 import { router as stacksRouter } from './handlerRouter/stacks';
@@ -16,7 +15,7 @@ async function handleRPCRequest(message: RpcRequestMessage, port: chrome.runtime
     !unsupported && Object.hasOwn(router, message.method) ? router[message.method] : undefined;
   if (!handler)
     return sendRpcResponse(
-      getTabIdFromPort(port),
+      port,
       makeRPCError(message.id as string, {
         code: RpcErrorCode.METHOD_NOT_FOUND,
         message: `"${message.method}" is not supported.`,
@@ -26,7 +25,7 @@ async function handleRPCRequest(message: RpcRequestMessage, port: chrome.runtime
   const [updateLastUsedTimeError] = await updateClientLastUsedTime(port);
   if (updateLastUsedTimeError) {
     sendRpcResponse(
-      getTabIdFromPort(port),
+      port,
       makeRPCError(message.id as string, {
         code: RpcErrorCode.INTERNAL_ERROR,
         message: 'Error updating client last used time.',
@@ -38,7 +37,7 @@ async function handleRPCRequest(message: RpcRequestMessage, port: chrome.runtime
   const [handlerError] = await safePromise(handler(message, port));
   if (handlerError)
     return sendRpcResponse(
-      getTabIdFromPort(port),
+      port,
       makeRPCError(message.id as string, {
         code: RpcErrorCode.INTERNAL_ERROR,
         message: 'RPC handler error',

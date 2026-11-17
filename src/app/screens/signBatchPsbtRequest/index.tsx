@@ -1,4 +1,5 @@
 import { MESSAGE_SOURCE, SatsConnectMethods } from '@common/types/message-types';
+import { sendPageReply } from '@common/utils/replyTarget';
 import { assertBitcoinApproval } from '@common/utils/rpc/btc/regtestApproval';
 import BatchPsbtSigning from '@components/batchPsbtSigning';
 import useSelectedAccount from '@hooks/useSelectedAccount';
@@ -30,7 +31,7 @@ function SignBatchPsbtRequest() {
       },
     };
 
-    chrome.tabs.sendMessage(+tabId, signingMessage);
+    sendPageReply(+tabId, signingMessage);
   };
 
   const onCancel = () => {
@@ -40,7 +41,7 @@ function SignBatchPsbtRequest() {
       payload: { signBatchPsbtRequest: requestToken, signBatchPsbtResponse: 'cancel' },
     };
 
-    chrome.tabs.sendMessage(+tabId, signingMessage);
+    sendPageReply(+tabId, signingMessage);
     window.close();
   };
 

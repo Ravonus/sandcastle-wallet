@@ -21,7 +21,7 @@ const handleMintRune = async (message: RunesMintRequestMessage, port: chrome.run
 
   const { id } = await triggerRequestWindowOpen(RequestsRoutes.MintRune, urlParams);
   listenForPopupClose({
-    tabId,
+    port,
     id,
     response: makeRPCError(message.id, {
       code: RpcErrorCode.USER_REJECTION,

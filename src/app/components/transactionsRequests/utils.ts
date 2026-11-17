@@ -4,6 +4,7 @@ import {
   type TransactionResponseMessage,
   type TxResult,
 } from '@common/types/message-types';
+import { sendPageReply } from '@common/utils/replyTarget';
 
 interface FormatTxSignatureResponseArgs {
   payload: string;
@@ -36,7 +37,7 @@ export default function finalizeTxSignature({
 }: FinalizeTxSignatureArgs) {
   try {
     const responseMessage = formatTxSignatureResponse({ payload: requestPayload, response: data });
-    chrome.tabs.sendMessage(tabId, responseMessage);
+    sendPageReply(tabId, responseMessage);
   } catch (e) {
     console.log(e);
   }

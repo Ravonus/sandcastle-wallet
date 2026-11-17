@@ -3,6 +3,7 @@ import { CONTENT_SCRIPT_PORT, MESSAGE_SOURCE } from '@common/types/message-types
 import { regtestMethods } from '@common/types/regtestConnector';
 import { handleLegacyExternalMethodFormat } from '@common/utils/legacy-external-message-handler';
 import internalBackgroundMessageHandler from '@common/utils/messageHandlers';
+import { bindReplyTarget } from '@common/utils/replyTarget';
 import handleRPCRequest from '@common/utils/rpc';
 import handleRegtestConnector from '@common/utils/rpc/btc/regtest';
 import { waitForWalletState } from '@common/utils/rpc/btc/regtestApproval';
@@ -14,7 +15,11 @@ chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== CONTENT_SCRIPT_PORT) return;
 
   async function onMessageListener(message: any, messagingPort: chrome.runtime.Port) {
-    if (message?.source !== MESSAGE_SOURCE) return;
+    if (
+      message?.source !== MESSAGE_SOURCE ||
+      !bindReplyTarget(messagingPort, message.documentToken)
+    )
+      return;
     await waitForWalletState();
 
     const parseResult = v.safeParse(rpcRequestMessageSchema, message);

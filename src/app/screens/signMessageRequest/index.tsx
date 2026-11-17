@@ -1,4 +1,5 @@
 import { MESSAGE_SOURCE, SatsConnectMethods } from '@common/types/message-types';
+import { sendPageReply } from '@common/utils/replyTarget';
 import { assertBitcoinApproval } from '@common/utils/rpc/btc/regtestApproval';
 import { sendSignMessageSuccessResponseMessage } from '@common/utils/rpc/responseMessages/bitcoin';
 import { sendUserRejectionMessage } from '@common/utils/rpc/responseMessages/errors';
@@ -24,7 +25,7 @@ function SignMessageRequest() {
       finalizeMessageSignature({ requestPayload: requestToken, tabId: +tabId, data: 'cancel' });
     } else {
       sendUserRejectionMessage({
-        tabId: +tabId,
+        recipient: +tabId,
         messageId: requestId,
       });
     }
@@ -42,7 +43,7 @@ function SignMessageRequest() {
           signMessageResponse: signedMessage.signature,
         },
       };
-      chrome.tabs.sendMessage(+tabId, signingMessage);
+      sendPageReply(+tabId, signingMessage);
     } else {
       const signMessageResult: Return<'signMessage'> = {
         address: payload.address,
@@ -54,7 +55,7 @@ function SignMessageRequest() {
         protocol: signedMessage.protocol,
       };
       sendSignMessageSuccessResponseMessage({
-        tabId: +tabId,
+        recipient: +tabId,
         messageId: requestId,
         result: signMessageResult,
       });

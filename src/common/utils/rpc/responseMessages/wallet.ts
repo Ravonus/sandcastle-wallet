@@ -6,75 +6,75 @@ type RequestPermissionsSuccessArgs = BaseArgs & {
   result: Return<'wallet_requestPermissions'>;
 };
 export function sendRequestPermissionsSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: RequestPermissionsSuccessArgs) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type RenouncePermissionsSuccessArgs = BaseArgs & {
   result: Return<'wallet_renouncePermissions'>;
 };
 export function sendRenouncePermissionsSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: RenouncePermissionsSuccessArgs) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type GetWalletTypeSuccessArgs = BaseArgs & {
   result: Return<'wallet_getWalletType'>;
 };
 export function sendGetWalletTypeSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: GetWalletTypeSuccessArgs) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type GetPermissionsSuccessArgs = BaseArgs & {
   result: Return<'wallet_getCurrentPermissions'>;
 };
 export function sendGetCurrentPermissionsSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: GetPermissionsSuccessArgs) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type GetAccountSuccessArgs = BaseArgs & {
   result: Return<'wallet_getAccount'>;
 };
 export function sendGetAccountSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: GetAccountSuccessArgs) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type ConnectSuccessArgs = BaseArgs & {
   result: Return<'wallet_connect'>;
 };
 export function sendConnectSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: ConnectSuccessArgs) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }
 
 type GetNetworkSuccessArgs = BaseArgs & {
   result: Return<'wallet_getNetwork'>;
 };
 export function sendGetNetworkSuccessResponseMessage({
-  tabId,
+  recipient,
   messageId,
   result,
 }: GetNetworkSuccessArgs) {
-  sendRpcResponse(tabId, makeRpcSuccessResponse(messageId, result));
+  sendRpcResponse(recipient, makeRpcSuccessResponse(messageId, result));
 }

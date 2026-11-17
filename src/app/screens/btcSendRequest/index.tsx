@@ -1,4 +1,5 @@
 import { MESSAGE_SOURCE, SatsConnectMethods } from '@common/types/message-types';
+import { sendPageReply } from '@common/utils/replyTarget';
 import { assertBitcoinApproval } from '@common/utils/rpc/btc/regtestApproval';
 import { makeRPCError, makeRpcSuccessResponse, sendRpcResponse } from '@common/utils/rpc/helpers';
 import ConfirmBtcTransaction from '@components/confirmBtcTransaction';
@@ -170,7 +171,7 @@ function BtcSendRequest() {
 
   const handleCancel = () => {
     if (requestToken) {
-      chrome.tabs.sendMessage(+tabId, {
+      sendPageReply(+tabId, {
         source: MESSAGE_SOURCE,
         method: SatsConnectMethods.sendBtcResponse,
         payload: { sendBtcRequest: requestToken, sendBtcResponse: 'cancel' },
@@ -207,13 +208,17 @@ function BtcSendRequest() {
         const sendTransferResponse = makeRpcSuccessResponse<'sendTransfer'>(requestId, {
           txid: txnId,
         });
-        if (requestToken) {
-          chrome.tabs.sendMessage(+tabId, {
+        const canReply = await assertBitcoinApproval(new URLSearchParams(search)).then(
+          () => true,
+          () => false,
+        );
+        if (canReply && requestToken) {
+          sendPageReply(+tabId, {
             source: MESSAGE_SOURCE,
             method: SatsConnectMethods.sendBtcResponse,
             payload: { sendBtcRequest: requestToken, sendBtcResponse: txnId },
           });
-        } else {
+        } else if (canReply) {
           sendRpcResponse(+tabId, sendTransferResponse);
         }
         navigate('/tx-status', {

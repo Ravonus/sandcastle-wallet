@@ -1,3 +1,4 @@
+import { isReplyDocumentActive } from '@common/utils/replyTarget';
 /* eslint-disable import/prefer-default-export */
 import { initPermissionsStore, saveStore } from '@common/utils/permissionsStore';
 import { type Context } from '@common/utils/popup';
@@ -31,16 +32,14 @@ export function useMakeHandleAccept({ context, data }: Args) {
   return useCallback(async () => {
     if (context.localRegtestConnector) {
       const wallet = rootStore.store.getState().walletState;
-      const tab = await chrome.tabs.get(context.tabId).catch(() => undefined);
       if (
         !connectorEnabled(wallet) ||
         context.bitcoinApproval !== bitcoinApprovalSnapshot(wallet) ||
         !(await isRegtestSessionUnlocked(wallet)) ||
-        !tab?.url ||
-        new URL(tab.url).origin !== context.origin
+        !(await isReplyDocumentActive(context.tabId))
       ) {
         sendInternalErrorMessage({
-          tabId: context.tabId,
+          recipient: context.tabId,
           messageId: data.id,
           message: 'The Regtest connection changed.',
         });
@@ -54,7 +53,7 @@ export function useMakeHandleAccept({ context, data }: Args) {
     });
     if (clientIdError) {
       sendInternalErrorMessage({
-        tabId: context.tabId,
+        recipient: context.tabId,
         messageId: data.id,
         message: 'Error creating client ID.',
       });
@@ -112,7 +111,7 @@ export function useMakeHandleAccept({ context, data }: Args) {
       await saveStore(permissions.utils.store.setPermission(nextStore, walletPermission));
     } catch (error) {
       sendInternalErrorMessage({
-        tabId: context.tabId,
+        recipient: context.tabId,
         messageId: data.id,
         message: error instanceof Error ? error.message : 'Could not save site permissions',
       });
@@ -123,7 +122,7 @@ export function useMakeHandleAccept({ context, data }: Args) {
     if (data.method === 'wallet_requestPermissions')
       sendRequestPermissionsSuccessResponseMessage({
         messageId: data.id,
-        tabId: context.tabId,
+        recipient: context.tabId,
         result: true,
       });
     else {
@@ -134,7 +133,7 @@ export function useMakeHandleAccept({ context, data }: Args) {
 
       sendConnectSuccessResponseMessage({
         messageId: data.id,
-        tabId: context.tabId,
+        recipient: context.tabId,
         result: {
           id: accountId,
           walletType: account.accountType ?? 'software',

@@ -1,5 +1,6 @@
 import { MESSAGE_SOURCE, SatsConnectMethods } from '@common/types/message-types';
 import { getPopupPayload, type Context } from '@common/utils/popup';
+import { sendPageReply } from '@common/utils/replyTarget';
 import { accountPurposeAddresses } from '@common/utils/rpc/btc/getAddresses/utils';
 import { makeRPCError, makeRpcSuccessResponse, sendRpcResponse } from '@common/utils/rpc/helpers';
 import { usePermissions } from '@components/permissionsManager';
@@ -185,7 +186,7 @@ export default function useRequestHelper(): UseRequestHelperReturn {
         method: SatsConnectMethods.getAddressResponse,
         payload: { addressRequest: token, addressResponse: response },
       };
-      chrome.tabs.sendMessage(tabId, addressMessage);
+      sendPageReply(tabId, addressMessage);
     };
     const sendCancelledResponse = () => {
       const addressMessage = {
@@ -193,7 +194,7 @@ export default function useRequestHelper(): UseRequestHelperReturn {
         method: SatsConnectMethods.getAddressResponse,
         payload: { addressRequest: token, addressResponse: 'cancel' },
       };
-      chrome.tabs.sendMessage(tabId, addressMessage);
+      sendPageReply(tabId, addressMessage);
     };
 
     return {

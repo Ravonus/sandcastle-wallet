@@ -1,4 +1,5 @@
 import { MESSAGE_SOURCE, SatsConnectMethods } from '@common/types/message-types';
+import { sendPageReply } from '@common/utils/replyTarget';
 import { assertBitcoinApproval } from '@common/utils/rpc/btc/regtestApproval';
 import { makeRPCError, makeRpcSuccessResponse, sendRpcResponse } from '@common/utils/rpc/helpers';
 import useTransactionContext from '@hooks/useTransactionContext';
@@ -107,6 +108,11 @@ const useSignPsbt = () => {
       const txHex = txn.hex;
       const response = await btcClient.sendRawTransaction(txHex);
       txId = response.tx.hash;
+      const canReply = await assertBitcoinApproval(params).then(
+        () => true,
+        () => false,
+      );
+      if (!canReply) return { txId, signingResponse };
     }
 
     if (requestToken) {
@@ -121,7 +127,7 @@ const useSignPsbt = () => {
           },
         },
       };
-      chrome.tabs.sendMessage(+tabId, signingMessage);
+      sendPageReply(+tabId, signingMessage);
     } else {
       const result: Return<'signPsbt'> = {
         psbt: signingResponse,
@@ -147,7 +153,7 @@ const useSignPsbt = () => {
         method: SatsConnectMethods.signPsbtResponse,
         payload: { signPsbtRequest: requestToken, signPsbtResponse: 'cancel' },
       };
-      chrome.tabs.sendMessage(+tabId, signingMessage);
+      sendPageReply(+tabId, signingMessage);
     } else {
       const cancelError = makeRPCError(requestId as string, {
         code: RpcErrorCode.USER_REJECTION,

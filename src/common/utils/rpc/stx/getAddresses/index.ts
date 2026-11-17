@@ -1,4 +1,3 @@
-import { getTabIdFromPort } from '@common/utils';
 import getSelectedAccount from '@common/utils/getSelectedAccount';
 import {
   AddressPurpose,
@@ -25,8 +24,6 @@ const handleGetStxAddresses = async (
     rpcMethod: 'stx_getAddresses',
   };
 
-  const tabId = getTabIdFromPort(port);
-
   const {
     selectedAccountIndex,
     selectedAccountType,
@@ -48,7 +45,7 @@ const handleGetStxAddresses = async (
 
     const { id } = await triggerRequestWindowOpen(RequestsRoutes.StxAddressRequest, urlParams);
     listenForPopupClose({
-      tabId,
+      port,
       id,
       response: makeRPCError(message.id, {
         code: RpcErrorCode.USER_REJECTION,
@@ -59,7 +56,7 @@ const handleGetStxAddresses = async (
   }
 
   sendGetAddressesSuccessResponseMessage({
-    tabId,
+    recipient: port,
     messageId: message.id,
     result: {
       addresses: [

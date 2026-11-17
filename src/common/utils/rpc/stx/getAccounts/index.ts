@@ -20,7 +20,7 @@ const handleGetStxAccounts = async (
 
   const { id } = await triggerRequestWindowOpen(RequestsRoutes.StxAccountRequest, urlParams);
   listenForPopupClose({
-    tabId,
+    port,
     id,
     response: makeRPCError(message.id, {
       code: RpcErrorCode.USER_REJECTION,

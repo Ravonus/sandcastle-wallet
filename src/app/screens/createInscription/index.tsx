@@ -1,3 +1,4 @@
+import { sendPageReply } from '@common/utils/replyTarget';
 import TransportFactory from '@ledgerhq/hw-transport-webusb';
 import BigNumber from 'bignumber.js';
 import { decodeToken } from 'jsontokens';
@@ -201,7 +202,7 @@ function CreateInscription() {
       },
     };
 
-    chrome.tabs.sendMessage(tabId, response);
+    sendPageReply(tabId, response);
     window.close();
   };
 
@@ -279,7 +280,7 @@ function CreateInscription() {
               },
             },
       };
-      chrome.tabs.sendMessage(tabId, response);
+      sendPageReply(tabId, response);
       window.close();
     };
 

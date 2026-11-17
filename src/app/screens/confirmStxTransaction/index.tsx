@@ -161,7 +161,7 @@ function ConfirmStxTransaction() {
           switch (rpcMethod) {
             case 'stx_signTransaction': {
               sendSignTransactionSuccessResponseMessage({
-                tabId,
+                recipient: tabId,
                 messageId,
                 result: { transaction: txRaw },
               });
@@ -169,14 +169,14 @@ function ConfirmStxTransaction() {
             }
             case 'stx_transferStx': {
               sendStxTransferSuccessResponseMessage({
-                tabId,
+                recipient: tabId,
                 messageId,
                 result: { transaction: txRaw, txid: stxTxBroadcastData },
               });
               break;
             }
             default: {
-              sendInternalErrorMessage({ tabId, messageId });
+              sendInternalErrorMessage({ recipient: tabId, messageId });
             }
           }
           if (!broadcast) window.close();
@@ -237,7 +237,7 @@ function ConfirmStxTransaction() {
         switch (rpcMethod) {
           case 'stx_signTransaction': {
             sendSignTransactionSuccessResponseMessage({
-              tabId,
+              recipient: tabId,
               messageId,
               result: { transaction: rawTx },
             });
@@ -245,14 +245,14 @@ function ConfirmStxTransaction() {
           }
           case 'stx_transferStx': {
             sendStxTransferSuccessResponseMessage({
-              tabId,
+              recipient: tabId,
               messageId,
               result: { transaction: rawTx, txid: stxTxBroadcastData ?? '' },
             });
             break;
           }
           default: {
-            sendInternalErrorMessage({ tabId, messageId });
+            sendInternalErrorMessage({ recipient: tabId, messageId });
           }
         }
         if (!broadcast) window.close();
@@ -278,7 +278,7 @@ function ConfirmStxTransaction() {
         switch (rpcMethod) {
           case 'stx_signTransaction': {
             sendSignTransactionSuccessResponseMessage({
-              tabId,
+              recipient: tabId,
               messageId,
               result: { transaction: rawTx },
             });
@@ -286,14 +286,14 @@ function ConfirmStxTransaction() {
           }
           case 'stx_transferStx': {
             sendStxTransferSuccessResponseMessage({
-              tabId,
+              recipient: tabId,
               messageId,
               result: { transaction: rawTx, txid: stxTxBroadcastData ?? '' },
             });
             break;
           }
           default: {
-            sendInternalErrorMessage({ tabId, messageId });
+            sendInternalErrorMessage({ recipient: tabId, messageId });
           }
         }
         if (!broadcast) window.close();
@@ -315,7 +315,7 @@ function ConfirmStxTransaction() {
     if (isBrowserTx) {
       // A quick way to infer whether the app is responding to an RPC request.
       if (tabId && messageId) {
-        sendUserRejectionMessage({ tabId, messageId });
+        sendUserRejectionMessage({ recipient: tabId, messageId });
       } else {
         finalizeTxSignature({ requestPayload: requestToken, tabId: Number(tabId), data: 'cancel' });
       }

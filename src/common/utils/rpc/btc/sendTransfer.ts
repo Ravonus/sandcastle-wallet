@@ -1,5 +1,4 @@
 /* eslint-disable import/prefer-default-export */
-import { getTabIdFromPort } from '@common/utils';
 import { RpcErrorCode, type SendTransferRequestMessage } from '@sats-connect/core';
 import { validateBtcAddress } from '@secretkeylabs/xverse-core';
 import rootStore from '@stores/index';
@@ -35,7 +34,7 @@ export const handleSendTransfer = async (
       : undefined;
     if (error) {
       sendRpcResponse(
-        getTabIdFromPort(port),
+        port,
         makeRPCError(message.id, {
           code: RpcErrorCode.INVALID_PARAMS,
           message: error,
@@ -54,7 +53,7 @@ export const handleSendTransfer = async (
 
   const { id } = await triggerRequestWindowOpen(RequestsRoutes.SendBtcTx, urlParams);
   listenForPopupClose({
-    tabId,
+    port,
     id,
     response: makeRPCError(message.id, {
       code: RpcErrorCode.USER_REJECTION,

@@ -8,6 +8,7 @@ import { contentScriptRpcResponseMessageName } from '@common/utils/messages/exte
 import { saveStore } from '@common/utils/permissionsStore';
 import { makeContext } from '@common/utils/popup';
 import { validateRegtestOrdEndpoint } from '@common/utils/regtestEndpoints';
+import { sendPageReply } from '@common/utils/replyTarget';
 import {
   AddressPurpose,
   MessageSigningProtocols,
@@ -38,6 +39,7 @@ const inputsSchema = v.array(
     address: v.string(),
     index: v.pipe(v.number(), v.safeInteger(), v.minValue(0)),
     publicKey: v.optional(v.string()),
+    sigHash: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(255))),
     sighashTypes: v.optional(
       v.array(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(255))),
     ),
@@ -84,7 +86,7 @@ export default async function handleRegtestConnector(
   message: RpcRequestMessage,
   port: chrome.runtime.Port,
 ) {
-  const { tabId, origin } = makeContext(port);
+  const { origin } = makeContext(port);
   const state = getState();
   // All results except the normal approval results are generated in the worker.
   const reply = (result: unknown) => {
@@ -93,7 +95,7 @@ export default async function handleRegtestConnector(
       id: message.id,
       result,
     });
-    chrome.tabs.sendMessage(tabId, { type: contentScriptRpcResponseMessageName, data: response });
+    sendPageReply(port, { type: contentScriptRpcResponseMessageName, data: response });
   };
   const request = { jsonrpc: '2.0', id: message.id } as const;
 
@@ -159,6 +161,11 @@ export default async function handleRegtestConnector(
         ) {
           throw new Error('The configured Ord API is unavailable.');
         }
+        const available = await Promise.all(
+          confirmed.map(
+            (utxo, index) => verdicts[index] === 'clean' && bitcoin.isRegtestFundingAvailable(utxo),
+          ),
+        );
         const eligible = confirmed.flatMap<RegtestFundingUtxo>((utxo, index) => {
           const height = utxo.status.block_height;
           if (
@@ -167,7 +174,7 @@ export default async function handleRegtestConnector(
             height < 0 ||
             !Number.isSafeInteger(utxo.value) ||
             utxo.value <= 0 ||
-            verdicts[index] !== 'clean'
+            !available[index]
           )
             return [];
           return [
@@ -252,6 +259,7 @@ export default async function handleRegtestConnector(
           return {
             address: input.address,
             signingIndexes: [input.index],
+            sigHash: input.sigHash,
             sighashTypes: input.sighashTypes,
           };
         });
@@ -302,7 +310,7 @@ export default async function handleRegtestConnector(
     }
   } catch (error) {
     sendRpcResponse(
-      tabId,
+      port,
       makeRPCError(message.id, {
         code: RpcErrorCode.INTERNAL_ERROR,
         message: error instanceof Error ? error.message : String(error),
