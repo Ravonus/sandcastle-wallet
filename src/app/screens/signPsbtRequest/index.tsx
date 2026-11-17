@@ -83,6 +83,7 @@ function SignPsbtRequest() {
     setIsSigning(true);
     try {
       await assertBitcoinApproval(params);
+      if (payload.broadcast || payload.finalize) parsedPsbt.assertCanFinalize();
       let psbtToSign = parsedPsbt;
       if (txnContext.network === 'Regtest') {
         const inputs = await verifyRegtestPsbtFunding(txnContext, payload, network);

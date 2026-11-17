@@ -1,3 +1,4 @@
+import useRegtestImage from '@hooks/useRegtestImage';
 import { X } from '@phosphor-icons/react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
@@ -104,6 +105,12 @@ function Preview({
     setFontSize(fontSize - 0.5);
   }, [visible, fontSize]);
 
+  const contentUrl =
+    visible && inscriptionId && contentType === ContentType.IMAGE
+      ? inscriptionContentUrl(network, inscriptionId)
+      : undefined;
+  const regtestImage = useRegtestImage(network.type === 'Regtest' ? contentUrl : undefined);
+
   if (!visible) return null;
 
   let preview: React.ReactElement | null = null;
@@ -136,7 +143,10 @@ function Preview({
     // workaround to show the inscription preview for an already inscribed inscription
     if (inscriptionId) {
       preview = (
-        <PreviewImg src={inscriptionContentUrl(network, inscriptionId)} alt="Inscription" />
+        <PreviewImg
+          src={network.type === 'Regtest' ? regtestImage : contentUrl}
+          alt="Inscription"
+        />
       );
     } else {
       preview = <PreviewImg src={`data:${contentTypeRaw};base64,${content}`} alt="Inscription" />;

@@ -11,6 +11,7 @@ import {
   getInscriptionsTabGridItemSubText,
   isCollection,
 } from '@utils/inscriptions';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Theme from '../../../theme';
@@ -60,6 +61,7 @@ const StyledItemSub = styled(StyledP)`
 
 function InscriptionsTabGridItem({ item: collection }: { item: InscriptionCollectionsData }) {
   const navigate = useNavigate();
+  const { t } = useTranslation('translation', { keyPrefix: 'COMMON' });
   const { starredCollectibleIds, hiddenCollectibleIds } = useWalletSelector();
   const { ordinalsAddress } = useSelectedAccount();
   const collectionStarred = starredCollectibleIds[ordinalsAddress]?.some(
@@ -86,8 +88,13 @@ function InscriptionsTabGridItem({ item: collection }: { item: InscriptionCollec
     navigate(`/nft-dashboard/ordinal-detail/${inscriptionId}/${isItemHidden ? 'hidden' : ''}`);
   };
 
-  const itemId = getInscriptionsTabGridItemId(collection);
-  const itemSubText = getInscriptionsTabGridItemSubText(collection);
+  const thumbnail = collection.thumbnail_inscriptions?.[0];
+  const itemId = thumbnail?.detailsUnavailable
+    ? thumbnail.id
+    : getInscriptionsTabGridItemId(collection);
+  const itemSubText = thumbnail?.detailsUnavailable
+    ? t('INSCRIPTION_DETAILS_UNAVAILABLE')
+    : getInscriptionsTabGridItemSubText(collection);
 
   return (
     <CollectionContainer data-testid="collection-container">
@@ -112,7 +119,12 @@ function InscriptionsTabGridItem({ item: collection }: { item: InscriptionCollec
           {(collectionStarred || standaloneInscriptionStarred) && (
             <StyledStar size={14} color={Theme.colors.white_0} weight="fill" />
           )}
-          <StyledItemId data-testid="inscription-name" typography="body_bold_m" color="white_0">
+          <StyledItemId
+            data-testid="inscription-name"
+            title={thumbnail?.detailsUnavailable ? itemId : undefined}
+            typography="body_bold_m"
+            color="white_0"
+          >
             {itemId}
           </StyledItemId>
         </StyledItemIdContainer>

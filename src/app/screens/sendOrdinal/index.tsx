@@ -55,6 +55,7 @@ function SendOrdinalScreen() {
   const [transaction, setTransaction] = useState<btcTransaction.EnhancedTransaction | undefined>();
   const [summary, setSummary] = useState<TransactionSummary | undefined>();
   const [insufficientFundsError, setInsufficientFundsError] = useState(false);
+  const [splitError, setSplitError] = useState<string>();
 
   useResetUserFlow(RoutePaths.SendOrdinal);
 
@@ -69,6 +70,7 @@ function SendOrdinalScreen() {
 
   useCancellableEffect(
     async (isEffectActive) => {
+      setSplitError(undefined);
       if (!recipientAddress || !feeRate) {
         setTransaction(undefined);
         setSummary(undefined);
@@ -99,7 +101,9 @@ function SendOrdinalScreen() {
       } catch (e) {
         if (!isEffectActive()) return;
         if (e instanceof Error) {
-          if (e.message.includes('Insufficient funds')) {
+          if (e instanceof btcTransaction.InscriptionSplitError) {
+            setSplitError(e.message);
+          } else if (e.message.includes('Insufficient funds')) {
             setInsufficientFundsError(true);
           } else {
             console.error(e);
@@ -225,6 +229,7 @@ function SendOrdinalScreen() {
       recipientAddress={recipientAddress}
       setRecipientAddress={setRecipientAddress}
       insufficientFunds={insufficientFundsError}
+      splitError={splitError}
       feeRate={feeRate}
       setFeeRate={handleFeeRateChange}
       getFeeForFeeRate={calculateFeeForFeeRate}

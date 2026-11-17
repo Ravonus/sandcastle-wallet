@@ -15,6 +15,7 @@ import {
 import Button from '@ui-library/button';
 import { isValidBtcApi, isValidStacksApi } from '@utils/helper';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -166,19 +167,23 @@ function ChangeNetworkScreen() {
       };
 
       try {
-        if (!canSaveAnyway) {
-          const { bitcoin, ord } = await validateRegtestEndpoints(settings);
+        const { bitcoin, ord, wrongGenesis, warning } = await validateRegtestEndpoints(settings);
+        if (wrongGenesis) {
+          setFormErrors({ ...initialNodeErrors, ordApiUrl: t('REGTEST_WRONG_GENESIS') });
+          setCanSaveAnyway(false);
+          return;
+        }
+        if (!canSaveAnyway && (!bitcoin || !ord)) {
           setFormErrors({
             ...initialNodeErrors,
             btcApiUrl: bitcoin ? '' : t(settings.btcApiUrl ? 'INVALID_URL' : 'REQUIRED'),
             ordApiUrl: ord ? '' : t(settings.ordApiUrl ? 'INVALID_URL' : 'REQUIRED'),
           });
-          if (!bitcoin || !ord) {
-            setCanSaveAnyway(true);
-            return;
-          }
+          setCanSaveAnyway(true);
+          return;
         }
         await changeNetwork(settings, exposeConnector);
+        if (warning) toast(t(warning), { duration: 8000 });
         navigate('/settings');
       } catch {
         setSaveError(t('NETWORK_SAVE_FAILED'));

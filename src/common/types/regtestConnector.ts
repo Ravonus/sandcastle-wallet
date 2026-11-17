@@ -45,6 +45,7 @@ export type RegtestPsbtRequest = {
     address: string;
     index: number;
     publicKey?: string;
+    sigHash?: number;
     sighashTypes?: number[];
   }[];
   display?: {

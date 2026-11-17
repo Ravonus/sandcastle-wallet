@@ -1,5 +1,6 @@
 import PlaceholderImage from '@assets/img/nftDashboard/nft_fallback.svg';
 import { BetterBarLoader } from '@components/barLoader';
+import useRegtestImage from '@hooks/useRegtestImage';
 import useTextOrdinalContent from '@hooks/useTextOrdinalContent';
 import useWalletSelector from '@hooks/useWalletSelector';
 import { TextT } from '@phosphor-icons/react';
@@ -198,11 +199,13 @@ function OrdinalImage({
     [textContent, contentType],
   );
 
+  const regtestImageUrl =
+    isRegtest && ordinal && /^image\/(png|jpeg|gif|webp|avif|bmp|svg\+xml)(;|$)/i.test(contentType)
+      ? inscriptionContentUrl(network, ordinal.id)
+      : undefined;
+  const regtestImage = useRegtestImage(regtestImageUrl);
   if (isRegtest) {
-    const url = inscriptionContentUrl(network, ordinal.id);
-    if (url && /^image\/(png|jpeg|gif|webp|avif|bmp|svg\+xml)(;|$)/i.test(contentType)) {
-      return renderImage(t('ORDINAL'), url);
-    }
+    if (regtestImage) return renderImage(t('ORDINAL'), regtestImage);
     return (
       <ImageContainer data-testid="token-image" inNftDetail={inNftDetail}>
         {textContent ? (

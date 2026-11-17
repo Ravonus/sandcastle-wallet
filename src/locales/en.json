@@ -1,5 +1,6 @@
 {
   "COMMON": {
+    "INSCRIPTION_DETAILS_UNAVAILABLE": "Inscription details unavailable",
     "INSCRIPTION": "Inscription",
     "SEND": "Send",
     "COMBO": "Combo",
@@ -984,6 +985,9 @@
     "BTC_URL": "BTC URL",
     "REGTEST_BTC_URL": "Bitcoin API URL (esplora-style)",
     "REGTEST_ORD_URL": "Ord API URL",
+    "REGTEST_WRONG_GENESIS": "The Ord endpoint does not report the Regtest genesis block.",
+    "REGTEST_ORD_BEHIND": "The Ord index is more than one block behind the Bitcoin endpoint.",
+    "REGTEST_TIPS_DIFFER": "The Bitcoin and Ord endpoints report different blocks at the same height.",
     "REGTEST_CONNECTOR": "Expose local regtest test connector",
     "SAVE_ANYWAY": "Save anyway",
     "NETWORK_SAVE_FAILED": "Could not save network settings.",

@@ -16,6 +16,8 @@ const SubValueText = styled(StyledP)((props) => ({
   color: props.theme.colors.white_400,
 }));
 
+const UnavailableInscription = styled(SubValueText)({ overflowWrap: 'anywhere' });
+
 const TxIdContainer = styled.div((props) => ({
   display: 'flex',
   flexDirection: 'row',
@@ -31,11 +33,19 @@ function TransactionInput({ input }: Props) {
   const { btcAddresses } = useSelectedAccount();
   const { t } = useTranslation('translation', { keyPrefix: 'CONFIRM_TRANSACTION' });
 
+  const { t: commonT } = useTranslation('translation', { keyPrefix: 'COMMON' });
+  const unavailableInscriptions = input.unlocatedInscriptionIds?.map((id) => (
+    <UnavailableInscription key={id} typography="body_medium_s">
+      {commonT('INSCRIPTION_DETAILS_UNAVAILABLE')} ({id})
+    </UnavailableInscription>
+  ));
+
   if (input.prevoutUnknown) {
     return (
       <TransferDetailContainer>
         <StyledP typography="body_medium_s">{t('UNKNOWN_INPUT')}</StyledP>
         <SubValueText typography="body_medium_s">{input.extendedUtxo.outpoint}</SubValueText>
+        {unavailableInscriptions}
       </TransferDetailContainer>
     );
   }
@@ -84,6 +94,7 @@ function TransactionInput({ input }: Props) {
           renderAddress(input.extendedUtxo.address)
         )}
       </TransferDetailView>
+      {unavailableInscriptions}
     </TransferDetailContainer>
   );
 }

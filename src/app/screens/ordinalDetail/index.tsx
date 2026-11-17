@@ -552,7 +552,11 @@ function OrdinalDetailScreen() {
             {isBrc20Ordinal ? t('BRC20_INSCRIPTION') : ordinal?.collection_name || t('INSCRIPTION')}
           </CollectibleText>
           <OrdinalTitleContainer>
-            <OrdinalTitleText>{ordinal?.number}</OrdinalTitleText>
+            <OrdinalTitleText>
+              {ordinal?.detailsUnavailable
+                ? commonT('INSCRIPTION_DETAILS_UNAVAILABLE')
+                : ordinal?.number}
+            </OrdinalTitleText>
             {refreshingThumbnail && <Spinner color="white" size={20} />}
           </OrdinalTitleContainer>
           {!isGalleryOpen && <StyledWebGalleryButton onClick={openInGalleryView} />}

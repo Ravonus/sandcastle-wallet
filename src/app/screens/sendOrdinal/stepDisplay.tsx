@@ -51,6 +51,7 @@ type Props = {
   isLoading: boolean;
   isSubmitting: boolean;
   insufficientFunds: boolean;
+  splitError?: string;
 };
 
 function StepDisplay({
@@ -69,6 +70,7 @@ function StepDisplay({
   isLoading,
   isSubmitting,
   insufficientFunds,
+  splitError,
 }: Props) {
   const { t } = useTranslation('translation');
 
@@ -112,9 +114,11 @@ function StepDisplay({
               header={header}
               recipientAddress={recipientAddress}
               setRecipientAddress={setRecipientAddress}
-              onNext={() => setCurrentStep(getNextStep(Step.SelectRecipient))}
+              onNext={() => {
+                if (!splitError) setCurrentStep(getNextStep(Step.SelectRecipient));
+              }}
               isLoading={isLoading}
-              calloutText={t('SEND.MAKE_SURE_THE_RECIPIENT')}
+              calloutText={splitError ?? t('SEND.MAKE_SURE_THE_RECIPIENT')}
               insufficientFunds={insufficientFunds}
             />
           </Container>
