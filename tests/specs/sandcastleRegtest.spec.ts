@@ -89,6 +89,7 @@ test('Regtest restores locally, renders an inscription and approves marketplace 
       headless: true,
       args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
     });
+    context.setDefaultTimeout(15_000);
     const httpRequests: string[] = [];
     const workerRequests: string[] = [];
     context.on('request', (request) => {
@@ -260,13 +261,11 @@ test('Regtest restores locally, renders an inscription and approves marketplace 
     mixed.signIdx(externalKey, 1);
     const preserved = hex.encode(mixed.getInput(1).tapKeySig!);
     const legacyRequest = createUnsecuredToken({
-      payload: {
-        network: { type: 'Regtest' },
-        psbtBase64: base64.encode(mixed.toPSBT()),
-        inputsToSign: [{ address: replay.addresses.ordinals, signingIndexes: [0], sigHash: 0x83 }],
-        broadcast: false,
-        message: 'Legacy Regtest approval',
-      },
+      network: { type: 'Regtest' },
+      psbtBase64: base64.encode(mixed.toPSBT()),
+      inputsToSign: [{ address: replay.addresses.ordinals, signingIndexes: [0], sigHash: 0x83 }],
+      broadcast: false,
+      message: 'Legacy Regtest approval',
     });
     const legacyPopup = context.waitForEvent('page');
     const legacyResult = site.evaluate(
