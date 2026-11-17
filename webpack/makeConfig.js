@@ -13,7 +13,13 @@ const createStyledComponentsTransformer = require('typescript-plugin-styled-comp
 const styledComponentsTransformer = createStyledComponentsTransformer();
 const keysTransformer = require('ts-transformer-keys/transformer').default;
 
+const walletModules = path.resolve(__dirname, '../node_modules');
 const aliases = {
+  // Share React and its query context with the linked core package.
+  react: path.join(walletModules, 'react'),
+  'react-dom': path.join(walletModules, 'react-dom'),
+  '@tanstack/react-query$': path.join(walletModules, '@tanstack/react-query'),
+  '@scure/btc-signer': path.join(walletModules, '@scure/btc-signer/esm'),
   // alias stacks.js packages to their esm (default prefers /dist/polyfill)
   '@stacks/transactions': '@stacks/transactions/dist/esm',
   '@secretkeylabs/xverse-core': '@secretkeylabs/xverse-core/dist',
@@ -104,6 +110,8 @@ function makeConfig(opts) {
       ],
     },
     resolve: {
+      // Keep the linked core's compiled files under node_modules for loader exclusions.
+      symlinks: false,
       plugins: [
         new TsconfigPathsPlugin({
           configFile: path.join(__dirname, '../', 'tsconfig.json'),
@@ -121,7 +129,7 @@ function makeConfig(opts) {
     },
     plugins: [
       new ForkTsCheckerWebpackPlugin(),
-      new Dotenv({ safe: true, systemvars: true }),
+      new Dotenv({ safe: true, systemvars: true, allowEmptyValues: true }),
       new CleanWebpackPlugin({ verbose: false }),
       new webpack.ProgressPlugin(),
       // expose and write the allowed env vars on the compiled bundle
