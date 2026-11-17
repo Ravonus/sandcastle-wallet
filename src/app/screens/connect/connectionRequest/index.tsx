@@ -30,6 +30,7 @@ import {
 } from './index.styles';
 
 import useSelectedAccount from '@hooks/useSelectedAccount';
+import useWalletSelector from '@hooks/useWalletSelector';
 import { getAppIconFromWebManifest, safePromise } from '@secretkeylabs/xverse-core';
 import { useQuery } from '@tanstack/react-query';
 import AddressPurposeBox from '../addressPurposeBox';
@@ -44,14 +45,16 @@ type ConnectionRequestInnerProps = {
 function ConnectionRequestInner({ data, context }: ConnectionRequestInnerProps) {
   const { t } = useTranslation('translation', { keyPrefix: 'AUTH_REQUEST_SCREEN' });
   const selectedAccount = useSelectedAccount();
+  const { network } = useWalletSelector();
   const handleCancel = useCallback(() => {
     window.close();
   }, []);
   const handleAccept = useMakeHandleAccept({ context, data });
 
   const { data: appIconSrc } = useQuery({
-    queryKey: ['appIcon', context.origin],
+    queryKey: ['appIcon', network.type, context.origin],
     queryFn: async () => {
+      if (network.type === 'Regtest') return null;
       const [error, icon] = await safePromise(getAppIconFromWebManifest(context.origin));
 
       if (error) return null;
@@ -116,7 +119,7 @@ function ConnectionRequestInner({ data, context }: ConnectionRequestInnerProps) 
           </DappInfoTextContainer>
         </DappInfoContainer>
         <AccountSwitcherContainer>
-          <SelectAccountPrompt />
+          {!context.localRegtestConnector && <SelectAccountPrompt />}
         </AccountSwitcherContainer>
         {data.method === 'wallet_connect' && (
           <AddressBoxContainer>
@@ -126,7 +129,9 @@ function ConnectionRequestInner({ data, context }: ConnectionRequestInnerProps) 
                 AddressPurpose.Ordinals,
                 AddressPurpose.Stacks,
               ]
-            ).map(AddressPurposeRow)}
+            )
+              .filter((purpose) => network.type !== 'Regtest' || purpose !== AddressPurpose.Stacks)
+              .map(AddressPurposeRow)}
           </AddressBoxContainer>
         )}
         {

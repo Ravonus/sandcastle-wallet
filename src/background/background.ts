@@ -1,8 +1,11 @@
 /* eslint-disable no-void */
 import { CONTENT_SCRIPT_PORT, MESSAGE_SOURCE } from '@common/types/message-types';
+import { regtestMethods } from '@common/types/regtestConnector';
 import { handleLegacyExternalMethodFormat } from '@common/utils/legacy-external-message-handler';
 import internalBackgroundMessageHandler from '@common/utils/messageHandlers';
 import handleRPCRequest from '@common/utils/rpc';
+import handleRegtestConnector from '@common/utils/rpc/btc/regtest';
+import { waitForWalletState } from '@common/utils/rpc/btc/regtestApproval';
 import { rpcRequestMessageSchema } from '@sats-connect/core';
 import * as v from 'valibot';
 
@@ -12,16 +15,21 @@ chrome.runtime.onConnect.addListener((port) => {
 
   async function onMessageListener(message: any, messagingPort: chrome.runtime.Port) {
     if (message?.source !== MESSAGE_SOURCE) return;
+    await waitForWalletState();
 
     const parseResult = v.safeParse(rpcRequestMessageSchema, message);
 
     if (!parseResult.success) {
       // Assume it's a legacy message when parsing fails.
-      handleLegacyExternalMethodFormat(message, messagingPort);
+      await handleLegacyExternalMethodFormat(message, messagingPort);
       return;
     }
 
-    handleRPCRequest(parseResult.output, port);
+    if (Object.values<string>(regtestMethods).includes(parseResult.output.method)) {
+      await handleRegtestConnector(parseResult.output, port);
+      return;
+    }
+    await handleRPCRequest(parseResult.output, port);
   }
 
   port.onMessage.addListener((message, messagingPort) => {

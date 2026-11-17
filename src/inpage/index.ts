@@ -1,6 +1,7 @@
 import type { BitcoinProvider } from '@sats-connect/core';
 import type { StacksProvider } from '@stacks/connect';
 import { SandcastleProviderInfo } from '@utils/constants';
+import installRegtestConnector from './regtestConnector';
 import SatsMethodsProvider from './sats.inpage';
 import StacksMethodsProvider from './stacks.inpage';
 
@@ -23,3 +24,5 @@ const providers = window.btc_providers;
 if (!providers.some(({ id }) => id === SandcastleProviderInfo.id)) {
   providers.push(SandcastleProviderInfo);
 }
+
+installRegtestConnector();

@@ -28,7 +28,7 @@ export function hasStoreChanges(changes: {
 }
 
 export function saveStore(store: Permissions.Store.PermissionsStore) {
-  chrome.storage.local.set({ [permissionsPersistantStoreKeyName]: JSON.stringify(store) });
+  return chrome.storage.local.set({ [permissionsPersistantStoreKeyName]: JSON.stringify(store) });
 }
 
 async function loadPermissionsStore(): Promise<

@@ -1,12 +1,12 @@
 import useSelectedAccount from '@hooks/useSelectedAccount';
 import useWalletSelector from '@hooks/useWalletSelector';
-import type { SignTransactionPayload } from '@sats-connect/core';
 import { btcTransaction } from '@secretkeylabs/xverse-core';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { PsbtApprovalPayload } from './useSignPsbt';
 
 type Props = {
-  payload: SignTransactionPayload | undefined;
+  payload: PsbtApprovalPayload | undefined;
   parsedPsbt: btcTransaction.EnhancedPsbt | undefined;
 };
 
@@ -23,8 +23,8 @@ const useSignPsbtValidationGate = ({ payload, parsedPsbt }: Props) => {
   const [validationError, setValidationError] = useState<ValidationError | null>(null);
 
   useEffect(() => {
-    if (!payload) return;
-    if (!parsedPsbt) {
+    setValidationError(null);
+    if (!payload || !parsedPsbt) {
       setValidationError({
         error: t('PSBT_CANT_PARSE_ERROR_DESCRIPTION'),
         errorTitle: t('PSBT_CANT_PARSE_ERROR_TITLE'),

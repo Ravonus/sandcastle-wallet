@@ -84,6 +84,9 @@ function useMakeTransitionalGrantAccountReadPermissions() {
 
 export default function useRequestHelper(): UseRequestHelperReturn {
   const account = useSelectedAccount();
+  const { network } = useWalletSelector();
+  const supported = (purposes: AddressPurpose[] = []) =>
+    purposes.filter((purpose) => network.type !== 'Regtest' || purpose !== AddressPurpose.Stacks);
   const transitionalGrantReadPermissions = useMakeTransitionalGrantAccountReadPermissions();
 
   // Used for handling a legacy request at the end of this function. Although
@@ -101,11 +104,11 @@ export default function useRequestHelper(): UseRequestHelperReturn {
       message: data.params.message,
       origin: context.origin,
       legacyRequestNetworkType: undefined,
-      purposes: data.params.purposes,
+      purposes: supported(data.params.purposes),
       async sendApprovedResponse() {
         const addresses = accountPurposeAddresses(account, {
           type: 'select',
-          purposes: popupPayloadGetAddresses.data.params.purposes,
+          purposes: supported(popupPayloadGetAddresses.data.params.purposes),
         });
 
         sendRpcResponse(context.tabId, makeRpcSuccessResponse(data.id, { addresses }));
@@ -131,12 +134,12 @@ export default function useRequestHelper(): UseRequestHelperReturn {
       message: data.params.message,
       origin: context.origin,
       legacyRequestNetworkType: undefined,
-      purposes: data.params.purposes,
+      purposes: supported(data.params.purposes),
       async sendApprovedResponse() {
         await transitionalGrantReadPermissions(context);
         const addresses: GetAccountsResult = accountPurposeAddresses(account, {
           type: 'select',
-          purposes: popupPayloadGetAccounts.data.params.purposes,
+          purposes: supported(popupPayloadGetAccounts.data.params.purposes),
         }).map((address) => ({
           ...address,
           walletType: account.accountType ?? 'software',
@@ -168,7 +171,9 @@ export default function useRequestHelper(): UseRequestHelperReturn {
     }
     const message = request?.payload.message ?? params.get('message') ?? '';
     const pArray = params.get('purposes');
-    const purposes = request?.payload.purposes ?? (pArray?.split(',') as AddressPurpose[]);
+    const purposes = supported(
+      request?.payload.purposes ?? (pArray?.split(',') as AddressPurpose[]),
+    );
     const addresses = accountPurposeAddresses(account, { type: 'select', purposes });
     const tabId = Number(params.get('tabId') ?? '0');
     const sendApprovedResponse = async () => {

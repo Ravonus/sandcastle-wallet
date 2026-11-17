@@ -100,7 +100,7 @@ function BtcSelectAddressScreen() {
   }, [legacyRequestNetworkType, navigate, network.type, purposes, t]);
 
   useEffect(() => {
-    if (origin === '') {
+    if (origin === '' || network.type === 'Regtest') {
       return;
     }
 
@@ -112,7 +112,7 @@ function BtcSelectAddressScreen() {
       .finally(() => {
         setIsLoadingIcon(false);
       });
-  }, [origin]);
+  }, [origin, network.type]);
 
   const AddressPurposeRow = useCallback(
     (purpose: AddressPurpose) => {

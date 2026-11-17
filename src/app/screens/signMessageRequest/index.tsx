@@ -1,4 +1,5 @@
 import { MESSAGE_SOURCE, SatsConnectMethods } from '@common/types/message-types';
+import { assertBitcoinApproval } from '@common/utils/rpc/btc/regtestApproval';
 import { sendSignMessageSuccessResponseMessage } from '@common/utils/rpc/responseMessages/bitcoin';
 import { sendUserRejectionMessage } from '@common/utils/rpc/responseMessages/errors';
 import AccountHeaderComponent from '@components/accountHeader';
@@ -8,10 +9,13 @@ import { MessageSigningProtocols, type Return } from '@sats-connect/core';
 import { finalizeMessageSignature } from '@screens/signatureRequest/utils';
 import { bip0322Hash, legacyHash } from '@secretkeylabs/xverse-core';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
 import { useSignMessageRequestParams, useSignMessageValidation } from './useSignMessageRequest';
 
 function SignMessageRequest() {
   const { t } = useTranslation('translation');
+  const { search } = useLocation();
+  const assertApproval = () => assertBitcoinApproval(new URLSearchParams(search));
   const { payload, tabId, requestToken, requestId } = useSignMessageRequestParams();
   const { validationError, setValidationError } = useSignMessageValidation(payload);
 
@@ -28,6 +32,7 @@ function SignMessageRequest() {
   };
 
   const onSigned = async (signedMessage) => {
+    await assertApproval();
     if (requestToken) {
       const signingMessage = {
         source: MESSAGE_SOURCE,
@@ -85,6 +90,7 @@ function SignMessageRequest() {
       message={payload.message}
       protocol={payload.protocol as MessageSigningProtocols}
       onSigned={onSigned}
+      beforeSign={assertApproval}
       onSignedError={onSignedError}
       onCancel={cancelCallback}
       header={<AccountHeaderComponent disableMenuOption disableAccountSwitch />}

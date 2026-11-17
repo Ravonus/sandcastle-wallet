@@ -14,6 +14,8 @@ const contextSchema = v.object({
 
   /** The tab that initiated the request being sent to the popup. */
   tabId: v.number(),
+  localRegtestConnector: v.optional(v.boolean()),
+  bitcoinApproval: v.optional(v.string()),
 });
 
 export type Context = v.InferOutput<typeof contextSchema>;

@@ -31,6 +31,15 @@ function TransactionInput({ input }: Props) {
   const { btcAddresses } = useSelectedAccount();
   const { t } = useTranslation('translation', { keyPrefix: 'CONFIRM_TRANSACTION' });
 
+  if (input.prevoutUnknown) {
+    return (
+      <TransferDetailContainer>
+        <StyledP typography="body_medium_s">{t('UNKNOWN_INPUT')}</StyledP>
+        <SubValueText typography="body_medium_s">{input.extendedUtxo.outpoint}</SubValueText>
+      </TransferDetailContainer>
+    );
+  }
+
   const userAddresses = Object.values(btcAddresses).map((address) => address.address);
   const isExternalInput = userAddresses.every((address) => address !== input.extendedUtxo.address);
 

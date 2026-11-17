@@ -1,16 +1,23 @@
 /* eslint-disable import/prefer-default-export */
+import { initPermissionsStore, saveStore } from '@common/utils/permissionsStore';
 import { type Context } from '@common/utils/popup';
 import { accountPurposeAddresses } from '@common/utils/rpc/btc/getAddresses/utils';
+import {
+  bitcoinApprovalSnapshot,
+  connectorEnabled,
+  isRegtestSessionUnlocked,
+} from '@common/utils/rpc/btc/regtestApproval';
 import { sendInternalErrorMessage } from '@common/utils/rpc/responseMessages/errors';
 import {
   sendConnectSuccessResponseMessage,
   sendRequestPermissionsSuccessResponseMessage,
 } from '@common/utils/rpc/responseMessages/wallet';
-import { usePermissions } from '@components/permissionsManager';
 import useSelectedAccount from '@hooks/useSelectedAccount';
 import useWalletSelector from '@hooks/useWalletSelector';
 import type { ConnectRequestMessage, RequestPermissionsRequestMessage } from '@sats-connect/core';
+import { AddressPurpose } from '@sats-connect/core';
 import { permissions, type Permissions as TPermissions } from '@secretkeylabs/xverse-core';
+import rootStore from '@stores/index';
 import { useCallback } from 'react';
 
 type Args = {
@@ -20,9 +27,28 @@ type Args = {
 export function useMakeHandleAccept({ context, data }: Args) {
   const account = useSelectedAccount();
   const { network } = useWalletSelector();
-  const { addClient, addResource, setPermission } = usePermissions();
 
   return useCallback(async () => {
+    if (context.localRegtestConnector) {
+      const wallet = rootStore.store.getState().walletState;
+      const tab = await chrome.tabs.get(context.tabId).catch(() => undefined);
+      if (
+        !connectorEnabled(wallet) ||
+        context.bitcoinApproval !== bitcoinApprovalSnapshot(wallet) ||
+        !(await isRegtestSessionUnlocked(wallet)) ||
+        !tab?.url ||
+        new URL(tab.url).origin !== context.origin
+      ) {
+        sendInternalErrorMessage({
+          tabId: context.tabId,
+          messageId: data.id,
+          message: 'The Regtest connection changed.',
+        });
+        window.close();
+        return;
+      }
+    }
+
     const [clientIdError, clientId] = permissions.utils.store.makeClientId({
       origin: context.origin,
     });
@@ -40,8 +66,6 @@ export function useMakeHandleAccept({ context, data }: Args) {
       id: clientId,
       origin: context.origin,
     };
-
-    addClient(client);
 
     const accountId = permissions.utils.account.makeAccountId({
       accountId: account.id,
@@ -63,9 +87,6 @@ export function useMakeHandleAccept({ context, data }: Args) {
       },
     };
 
-    addResource(resource);
-    setPermission(accountPermission);
-
     const walletResource: TPermissions.Store.Resource = {
       type: 'wallet',
       id: 'wallet',
@@ -81,8 +102,23 @@ export function useMakeHandleAccept({ context, data }: Args) {
       },
     };
 
-    addResource(walletResource);
-    setPermission(walletPermission);
+    try {
+      const [error, store] = await initPermissionsStore();
+      if (error) throw new Error('Could not load site permissions');
+      const withClient = permissions.utils.store.addClient(store, client);
+      const withAccount = permissions.utils.store.addResource(withClient, resource);
+      const withWallet = permissions.utils.store.addResource(withAccount, walletResource);
+      const nextStore = permissions.utils.store.setPermission(withWallet, accountPermission);
+      await saveStore(permissions.utils.store.setPermission(nextStore, walletPermission));
+    } catch (error) {
+      sendInternalErrorMessage({
+        tabId: context.tabId,
+        messageId: data.id,
+        message: error instanceof Error ? error.message : 'Could not save site permissions',
+      });
+      window.close();
+      return;
+    }
 
     if (data.method === 'wallet_requestPermissions')
       sendRequestPermissionsSuccessResponseMessage({
@@ -91,11 +127,10 @@ export function useMakeHandleAccept({ context, data }: Args) {
         result: true,
       });
     else {
-      const purposes = data.params?.addresses;
-      const addresses = accountPurposeAddresses(
-        account,
-        purposes ? { type: 'select', purposes } : { type: 'all' },
+      const purposes = (data.params?.addresses ?? Object.values(AddressPurpose)).filter(
+        (purpose) => network.type !== 'Regtest' || purpose !== AddressPurpose.Stacks,
       );
+      const addresses = accountPurposeAddresses(account, { type: 'select', purposes });
 
       sendConnectSuccessResponseMessage({
         messageId: data.id,
@@ -117,16 +152,5 @@ export function useMakeHandleAccept({ context, data }: Args) {
     }
 
     window.close();
-  }, [
-    account,
-    addClient,
-    addResource,
-    context.origin,
-    context.tabId,
-    data.id,
-    data.method,
-    data.params,
-    network.type,
-    setPermission,
-  ]);
+  }, [account, context, data.id, data.method, data.params, network.type]);
 }

@@ -1,5 +1,6 @@
 import { type RpcErrorResponse } from '@sats-connect/core';
 import { type SignatureData } from '@stacks/connect';
+import rootStore from '@stores/index';
 import { getOriginFromPort, getTabIdFromPort } from '.';
 import {
   InternalMethods,
@@ -15,6 +16,7 @@ import {
 import { sendMessage } from '../types/messages';
 import popupCenter from './popup-center';
 import RequestsRoutes from './route-urls';
+import { bitcoinApprovalParams } from './rpc/btc/regtestApproval';
 import { sendRpcResponse } from './rpc/helpers';
 
 type ParamsObject = Record<string, string | null | undefined>;
@@ -98,6 +100,30 @@ export async function handleLegacyExternalMethodFormat(
   port: chrome.runtime.Port,
 ) {
   const { payload } = message;
+  if (rootStore.store.getState().walletState.network.type === 'Regtest') {
+    const unsupported: Record<string, string> = {
+      [StacksLegacyMethods.authenticationRequest]: StacksLegacyMethods.authenticationResponse,
+      [StacksLegacyMethods.transactionRequest]: StacksLegacyMethods.transactionResponse,
+      [StacksLegacyMethods.signatureRequest]: StacksLegacyMethods.signatureResponse,
+      [StacksLegacyMethods.structuredDataSignatureRequest]: StacksLegacyMethods.signatureResponse,
+      [SatsConnectMethods.createInscriptionRequest]: SatsConnectMethods.createInscriptionResponse,
+      [SatsConnectMethods.createRepeatInscriptionsRequest]:
+        SatsConnectMethods.createRepeatInscriptionsResponse,
+    };
+    if (Object.hasOwn(unsupported, message.method)) {
+      const method = unsupported[message.method];
+      const requestMethod =
+        message.method === StacksLegacyMethods.structuredDataSignatureRequest
+          ? StacksLegacyMethods.signatureRequest
+          : message.method;
+      await chrome.tabs.sendMessage(getTabIdFromPort(port), {
+        source: MESSAGE_SOURCE,
+        method,
+        payload: { [requestMethod]: payload, [method]: 'cancel' },
+      });
+      return;
+    }
+  }
   switch (message.method) {
     case StacksLegacyMethods.authenticationRequest: {
       const { urlParams, tabId } = makeSearchParamsWithDefaults(port, [['authRequest', payload]]);
@@ -195,6 +221,7 @@ export async function handleLegacyExternalMethodFormat(
     }
     case SatsConnectMethods.signPsbtRequest: {
       const { urlParams, tabId } = makeSearchParamsWithDefaults(port, [
+        ...bitcoinApprovalParams(),
         ['signPsbtRequest', payload],
       ]);
 
@@ -216,6 +243,7 @@ export async function handleLegacyExternalMethodFormat(
     }
     case SatsConnectMethods.signBatchPsbtRequest: {
       const { urlParams, tabId } = makeSearchParamsWithDefaults(port, [
+        ...bitcoinApprovalParams(),
         ['signBatchPsbtRequest', payload],
       ]);
 
@@ -237,6 +265,7 @@ export async function handleLegacyExternalMethodFormat(
     }
     case SatsConnectMethods.signMessageRequest: {
       const { urlParams, tabId } = makeSearchParamsWithDefaults(port, [
+        ...bitcoinApprovalParams(),
         ['signMessageRequest', payload],
       ]);
 
@@ -258,6 +287,7 @@ export async function handleLegacyExternalMethodFormat(
     }
     case SatsConnectMethods.sendBtcRequest: {
       const { urlParams, tabId } = makeSearchParamsWithDefaults(port, [
+        ...bitcoinApprovalParams(),
         ['sendBtcRequest', payload],
       ]);
 

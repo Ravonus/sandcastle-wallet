@@ -1,3 +1,5 @@
+import { MESSAGE_SOURCE, SatsConnectMethods } from '@common/types/message-types';
+import { assertBitcoinApproval } from '@common/utils/rpc/btc/regtestApproval';
 import { makeRPCError, makeRpcSuccessResponse, sendRpcResponse } from '@common/utils/rpc/helpers';
 import ConfirmBtcTransaction from '@components/confirmBtcTransaction';
 import useBtcFeeRate from '@hooks/useBtcFeeRate';
@@ -17,7 +19,7 @@ import { BITCOIN_DUST_AMOUNT_SATS } from '@utils/constants';
 import { trackMixPanel } from '@utils/mixpanel';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import useBtcSendRequestPayload from './useBtcSendRequestPayload';
 
@@ -36,8 +38,9 @@ const OuterContainer = styled.div`
 function BtcSendRequest() {
   const { network } = useWalletSelector();
   const navigate = useNavigate();
+  const { search } = useLocation();
   const selectedAccount = useSelectedAccount();
-  const { payload, tabId, requestId } = useBtcSendRequestPayload(
+  const { payload, tabId, requestId, requestToken } = useBtcSendRequestPayload(
     selectedAccount.btcAddress,
     network,
   );
@@ -166,6 +169,15 @@ function BtcSendRequest() {
   }, [payload]);
 
   const handleCancel = () => {
+    if (requestToken) {
+      chrome.tabs.sendMessage(+tabId, {
+        source: MESSAGE_SOURCE,
+        method: SatsConnectMethods.sendBtcResponse,
+        payload: { sendBtcRequest: requestToken, sendBtcResponse: 'cancel' },
+      });
+      window.close();
+      return;
+    }
     const response = makeRPCError(requestId, {
       code: RpcErrorCode.USER_REJECTION,
       message: 'User rejected request to send transfer',
@@ -180,9 +192,10 @@ function BtcSendRequest() {
   }) => {
     try {
       setIsSubmitting(true);
+      await assertBitcoinApproval(new URLSearchParams(search));
       const txnId = await transaction?.broadcast({
         ...options,
-        rbfEnabled: true,
+        rbfEnabled: network.type !== 'Regtest',
       });
 
       trackMixPanel(AnalyticsEvents.TransactionConfirmed, {
@@ -194,7 +207,15 @@ function BtcSendRequest() {
         const sendTransferResponse = makeRpcSuccessResponse<'sendTransfer'>(requestId, {
           txid: txnId,
         });
-        sendRpcResponse(+tabId, sendTransferResponse);
+        if (requestToken) {
+          chrome.tabs.sendMessage(+tabId, {
+            source: MESSAGE_SOURCE,
+            method: SatsConnectMethods.sendBtcResponse,
+            payload: { sendBtcRequest: requestToken, sendBtcResponse: txnId },
+          });
+        } else {
+          sendRpcResponse(+tabId, sendTransferResponse);
+        }
         navigate('/tx-status', {
           state: {
             txid: txnId,

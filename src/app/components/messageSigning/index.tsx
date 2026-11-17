@@ -51,6 +51,7 @@ interface MessageSigningProps {
   message: string;
   protocol: MessageSigningProtocols;
   onSigned: (signedMessage: SignedMessage) => Promise<void>;
+  beforeSign?: () => Promise<void>;
   onSignedError?: (error: unknown) => void;
   onCancel: () => void;
   header?: React.ReactNode;
@@ -61,6 +62,7 @@ function MessageSigning({
   message,
   protocol,
   onSigned,
+  beforeSign,
   onSignedError,
   onCancel,
   header,
@@ -250,6 +252,7 @@ function MessageSigning({
         setIsModalVisible(true);
         return;
       }
+      await beforeSign?.();
       const signedMessage = await confirmSignMessage();
       await onSigned(signedMessage);
     } catch (err) {

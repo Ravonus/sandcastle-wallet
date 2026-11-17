@@ -1,4 +1,5 @@
 import { MESSAGE_SOURCE, SatsConnectMethods } from '@common/types/message-types';
+import { assertBitcoinApproval } from '@common/utils/rpc/btc/regtestApproval';
 import BatchPsbtSigning from '@components/batchPsbtSigning';
 import useSelectedAccount from '@hooks/useSelectedAccount';
 import useWalletSelector from '@hooks/useWalletSelector';
@@ -104,6 +105,7 @@ function SignBatchPsbtRequest() {
       onSigned={onSigned}
       onCancel={onCancel}
       onPostSignDone={onDone}
+      assertApproval={() => assertBitcoinApproval(params)}
     />
   );
 }

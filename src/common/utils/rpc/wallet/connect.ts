@@ -3,16 +3,23 @@ import { getTabIdFromPort } from '@common/utils';
 import getSelectedAccount, { embellishAccountWithDetails } from '@common/utils/getSelectedAccount';
 import { initPermissionsStore } from '@common/utils/permissionsStore';
 import { makeContext, openPopup } from '@common/utils/popup';
-import { type ConnectRequestMessage, type ConnectResult } from '@sats-connect/core';
+import { AddressPurpose, type ConnectRequestMessage, type ConnectResult } from '@sats-connect/core';
 import { permissions } from '@secretkeylabs/xverse-core';
 import rootStore from '@stores/index';
 import RequestsRoutes from '../../route-urls';
 import { accountPurposeAddresses } from '../btc/getAddresses/utils';
+import { bitcoinApprovalSnapshot, isRegtestSessionUnlocked } from '../btc/regtestApproval';
 import { makeSendPopupClosedUserRejectionMessage } from '../helpers';
 import { sendInternalErrorMessage } from '../responseMessages/errors';
 import { sendConnectSuccessResponseMessage } from '../responseMessages/wallet';
 
-export const handleConnect = async (message: ConnectRequestMessage, port: chrome.runtime.Port) => {
+export const handleConnect = async (
+  message: ConnectRequestMessage,
+  port: chrome.runtime.Port,
+  localRegtestConnector = false,
+) => {
+  const { origin, tabId } = makeContext(port);
+  const state = rootStore.store.getState().walletState;
   // Check if the user already has account & network read permissions, and if
   // so, return the account data without opening the popup.
   //
@@ -39,7 +46,7 @@ export const handleConnect = async (message: ConnectRequestMessage, port: chrome
     keystoneAccountsList,
     network,
     btcPaymentAddressType,
-  } = rootStore.store.getState().walletState;
+  } = state;
 
   const account = getSelectedAccount({
     selectedAccountIndex,
@@ -88,11 +95,24 @@ export const handleConnect = async (message: ConnectRequestMessage, port: chrome
     actions: { readNetwork: true },
   });
 
-  if (!hasAccountReadPermissions || !hasNetworkReadPermissions) {
-    openPopup({
+  const isRegtest = network.type === 'Regtest';
+  const purposes = (message.params?.addresses ?? Object.values(AddressPurpose)).filter(
+    (purpose) => !isRegtest || purpose !== AddressPurpose.Stacks,
+  );
+  if (
+    (isRegtest && !(await isRegtestSessionUnlocked(state))) ||
+    !hasAccountReadPermissions ||
+    !hasNetworkReadPermissions
+  ) {
+    await openPopup({
       path: RequestsRoutes.ConnectionRequest,
-      data: message,
-      context: makeContext(port),
+      data: { ...message, params: { ...message.params, addresses: purposes } },
+      context: {
+        origin,
+        tabId,
+        localRegtestConnector,
+        bitcoinApproval: localRegtestConnector ? bitcoinApprovalSnapshot(state) : undefined,
+      },
       onClose: makeSendPopupClosedUserRejectionMessage({
         tabId: getTabIdFromPort(port),
         messageId: message.id,
@@ -102,7 +122,7 @@ export const handleConnect = async (message: ConnectRequestMessage, port: chrome
   }
 
   const embellishedAccount = embellishAccountWithDetails(account, btcPaymentAddressType);
-  const addresses = accountPurposeAddresses(embellishedAccount, { type: 'all' });
+  const addresses = accountPurposeAddresses(embellishedAccount, { type: 'select', purposes });
   const result: ConnectResult = {
     id: accountId,
     walletType: account.accountType ?? 'software',

@@ -12,6 +12,7 @@ import useTransactionContext from '@hooks/useTransactionContext';
 import useWalletSelector from '@hooks/useWalletSelector';
 import { ArrowLeft, ArrowRight } from '@phosphor-icons/react';
 import type { SignMultiplePsbtPayload } from '@sats-connect/core';
+import { verifyRegtestPsbtFunding } from '@screens/signPsbtRequest/verifyRegtestPsbtFunding';
 import {
   AnalyticsEvents,
   btcTransaction,
@@ -55,9 +56,10 @@ type Props = {
   onSigned: (signedPsbts: string[]) => void | Promise<void>;
   onCancel: () => void;
   onPostSignDone: () => void;
+  assertApproval?: () => Promise<void>;
 };
 
-function BatchPsbtSigning({ onSigned, psbts, onCancel, onPostSignDone }: Props) {
+function BatchPsbtSigning({ onSigned, psbts, onCancel, onPostSignDone, assertApproval }: Props) {
   const selectedAccount = useSelectedAccount();
   const { network } = useWalletSelector();
   const navigate = useNavigate();
@@ -84,7 +86,7 @@ function BatchPsbtSigning({ onSigned, psbts, onCancel, onPostSignDone }: Props) 
 
   useEffect(() => {
     const handlePsbtParsing = async (psbt: SignMultiplePsbtPayload) =>
-      new btcTransaction.EnhancedPsbt(txnContext, psbt.psbtBase64);
+      new btcTransaction.EnhancedPsbt(txnContext, psbt.psbtBase64, psbt.inputsToSign);
 
     const handlePsbtSummaryGeneration = async (
       parsedPsbt: btcTransaction.EnhancedPsbt,
@@ -162,11 +164,12 @@ function BatchPsbtSigning({ onSigned, psbts, onCancel, onPostSignDone }: Props) 
 
       for (let i = 0; i < psbts.length; i++) {
         const psbt = psbts[i];
-        const enhancedPsbt = new btcTransaction.EnhancedPsbt(
-          txnContext,
-          psbt.psbtBase64,
-          psbt.inputsToSign,
-        );
+        const inputs =
+          network.type === 'Regtest'
+            ? await verifyRegtestPsbtFunding(txnContext, psbt, network)
+            : psbt.inputsToSign;
+        await assertApproval?.();
+        const enhancedPsbt = new btcTransaction.EnhancedPsbt(txnContext, psbt.psbtBase64, inputs);
 
         const psbtBase64 = await enhancedPsbt.getSignedPsbtBase64({
           finalize: false,
@@ -188,7 +191,8 @@ function BatchPsbtSigning({ onSigned, psbts, onCancel, onPostSignDone }: Props) 
       setIsSigningComplete(true);
       setIsSigning(false);
 
-      onSigned(signedPsbts);
+      await assertApproval?.();
+      await onSigned(signedPsbts);
       setIsLedgerModalVisible(false);
       setIsKeystoneModalVisible(false);
     } catch (err) {

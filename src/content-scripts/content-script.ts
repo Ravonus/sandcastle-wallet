@@ -22,6 +22,7 @@ import {
   type LegacyMessageFromContentScript,
   type SatsConnectMessageFromContentScript,
 } from '@common/types/message-types';
+import { regtestSettingsChannel } from '@common/types/regtestConnector';
 import {
   contentScriptRpcResponseMessageSchema,
   contentScriptWalletEventMessageSchema,
@@ -177,7 +178,65 @@ document.addEventListener(DomEventName.rpcRequest, (event) => {
   }
 });
 
+// Watch only settings relevant to the connector. The page gets a signal, never wallet storage.
+let connectorActive = false;
+
+function updateConnectorFlag(value: string | undefined) {
+  const wasActive = connectorActive;
+  try {
+    const wallet = JSON.parse(value ?? '{}');
+    connectorActive =
+      wallet.exposeLocalRegtestConnector === 'true' &&
+      JSON.parse(wallet.network ?? '{}').type === 'Regtest';
+  } catch {
+    connectorActive = false;
+  }
+  return connectorActive || wasActive;
+}
+function connectorSettings(value: string | undefined) {
+  if (!value) return '';
+  try {
+    const wallet = JSON.parse(value);
+    return JSON.stringify([
+      wallet.network,
+      wallet.exposeLocalRegtestConnector,
+      wallet.selectedAccountIndex,
+      wallet.selectedAccountType,
+      wallet.btcPaymentAddressType,
+      wallet.isUnlocked,
+      wallet.walletLockPeriod,
+      wallet.accountsList,
+    ]);
+  } catch {
+    return '';
+  }
+}
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  const wallet = changes['persist:walletState'];
+  const shouldNotify =
+    area === 'local' && wallet ? updateConnectorFlag(wallet.newValue) : connectorActive;
+  if (!shouldNotify) return;
+  if (
+    (area === 'local' &&
+      (changes['client-permissions'] ||
+        (wallet && connectorSettings(wallet.oldValue) !== connectorSettings(wallet.newValue)))) ||
+    (area === 'session' && (changes.passwordHash || changes.sessionStartTime))
+  ) {
+    postPageResponse(regtestSettingsChannel, null);
+  }
+});
+
 const inpage = document.createElement('script');
 inpage.src = chrome.runtime.getURL('inpage.js');
 inpage.id = 'sandcastle-wallet-provider';
+inpage.addEventListener(
+  'load',
+  async () => {
+    const wallet = await chrome.storage.local.get('persist:walletState');
+    if (updateConnectorFlag(wallet['persist:walletState']))
+      postPageResponse(regtestSettingsChannel, null);
+  },
+  { once: true },
+);
 (document.head || document.documentElement).appendChild(inpage);

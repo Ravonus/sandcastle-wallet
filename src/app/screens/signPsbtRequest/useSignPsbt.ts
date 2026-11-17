@@ -1,4 +1,5 @@
 import { MESSAGE_SOURCE, SatsConnectMethods } from '@common/types/message-types';
+import { assertBitcoinApproval } from '@common/utils/rpc/btc/regtestApproval';
 import { makeRPCError, makeRpcSuccessResponse, sendRpcResponse } from '@common/utils/rpc/helpers';
 import useTransactionContext from '@hooks/useTransactionContext';
 import useWalletSelector from '@hooks/useWalletSelector';
@@ -17,9 +18,14 @@ import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import useBtcClient from '../../hooks/apiClients/useBtcClient';
 
+export type PsbtApprovalPayload = Omit<SignTransactionPayload, 'inputsToSign'> & {
+  inputsToSign?: InputToSign[];
+  finalize?: boolean;
+};
+
 const useSignPsbtParams = (network: SettingsNetwork) => {
   const { search } = useLocation();
-  const params = new URLSearchParams(search);
+  const params = useMemo(() => new URLSearchParams(search), [search]);
   const tabId = params.get('tabId') ?? '0';
   const requestId = params.get('requestId') ?? '';
   const location = useLocation();
@@ -41,15 +47,22 @@ const useSignPsbtParams = (network: SettingsNetwork) => {
         requestToken: null,
       };
     }
-    const signInputs = JSON.parse(params.get('signInputs')!) as Record<string, number[]>;
+    const signInputs = JSON.parse(params.get('signInputs') || '{}') as Record<string, number[]>;
     const inputsToSign: InputToSign[] = Object.keys(signInputs).map((address) => ({
       address,
       signingIndexes: signInputs[address],
     }));
-    const rpcPayload: SignTransactionPayload = {
+    const isConnector = params.get('localRegtestConnector') === 'true';
+    const connectorInputs = params.get('connectorInputs');
+    const rpcPayload: PsbtApprovalPayload = {
       psbtBase64: params.get('psbt') ?? '',
-      inputsToSign,
-      broadcast: Boolean(params.get('broadcast')) ?? false,
+      inputsToSign: isConnector
+        ? connectorInputs
+          ? JSON.parse(connectorInputs)
+          : undefined
+        : inputsToSign,
+      broadcast: params.get('broadcast') === 'true',
+      finalize: params.get('finalize') === 'true',
       message: params.get('message') ?? '',
       network: {
         type: BitcoinNetworkType[network.type],
@@ -61,13 +74,13 @@ const useSignPsbtParams = (network: SettingsNetwork) => {
     };
   }, []);
 
-  return { payload, tabId, requestToken, requestId };
+  return { payload: payload as PsbtApprovalPayload, tabId, requestToken, requestId, params };
 };
 
 const useSignPsbt = () => {
   const { network } = useWalletSelector();
   const btcClient = useBtcClient();
-  const { payload, tabId, requestToken, requestId } = useSignPsbtParams(network);
+  const { payload, tabId, requestToken, requestId, params } = useSignPsbtParams(network);
 
   const txnContext = useTransactionContext();
 
@@ -82,11 +95,15 @@ const useSignPsbt = () => {
 
   const confirmSignPsbt = async (signingResponse: string) => {
     if (!signingResponse) return;
+    await assertBitcoinApproval(params);
 
     let txId: string = '';
 
     if (payload.broadcast && signingResponse) {
-      const txn = btc.Transaction.fromPSBT(base64.decode(signingResponse));
+      const txn = btc.Transaction.fromPSBT(base64.decode(signingResponse), {
+        allowUnknownInputs: network.type === 'Regtest',
+        allowUnknownOutputs: network.type === 'Regtest',
+      });
       const txHex = txn.hex;
       const response = await btcClient.sendRawTransaction(txHex);
       txId = response.tx.hash;
@@ -144,6 +161,10 @@ const useSignPsbt = () => {
    * User closes request validation error
    */
   const onCloseError = (error: string) => {
+    if (requestToken) {
+      cancelSignPsbt();
+      return;
+    }
     const requestError = makeRPCError(requestId, {
       code: RpcErrorCode.INTERNAL_ERROR,
       message: error,
@@ -167,6 +188,8 @@ const useSignPsbt = () => {
     tabId,
     requestId,
     requestToken,
+    params,
+    txnContext,
     getSigningAddresses,
     confirmSignPsbt,
     cancelSignPsbt,

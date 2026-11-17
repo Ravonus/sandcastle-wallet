@@ -10,14 +10,17 @@ import {
 } from '../../legacy-external-message-handler';
 import RequestsRoutes from '../../route-urls';
 import { makeRPCError } from '../helpers';
+import { bitcoinApprovalParams } from './regtestApproval';
 
 export const handleSignMessage = async (
   message: SignMessageRequestMessage,
   port: chrome.runtime.Port,
+  connector = false,
 ) => {
   const requestPayload = SuperJSON.stringify(message.params);
 
   const requestParams: ParamsKeyValueArray = [
+    ...bitcoinApprovalParams(connector),
     ['payload', requestPayload],
     ['requestId', message.id as string],
   ];
