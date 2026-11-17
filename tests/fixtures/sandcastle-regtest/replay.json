@@ -1,0 +1,38 @@
+{
+  "addresses": {
+    "payment": "bcrt1q6rz28mcfaxtmd6v789l9rrlrusdprr9pz3cppk",
+    "nested": "2Mww8dCYPUpKHofjgcXcBCEGmniw9CoaiD2",
+    "ordinals": "bcrt1p8wpt9v4frpf3tkn0srd97pksgsxc5hs52lafxwru9kgeephvs7rqjeprhg"
+  },
+  "keys": {
+    "payment": "02e7ab2537b5d49e970309aae06e9e49f36ce1c9febbd44ec8e0d1cca0b4f9c319",
+    "ordinals": "55355ca83c973f1d97ce0e3843c85d78905af16b4dc531bc488e57212d230116"
+  },
+  "tip": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "height": 360,
+  "payment": {
+    "txid": "1111111111111111111111111111111111111111111111111111111111111111",
+    "vout": 0,
+    "value": 850000,
+    "status": { "confirmed": true, "block_height": 301, "block_time": 1740000000 }
+  },
+  "ordinal": {
+    "txid": "2222222222222222222222222222222222222222222222222222222222222222",
+    "vout": 0,
+    "value": 10000,
+    "status": { "confirmed": true, "block_height": 307, "block_time": 1740000600 }
+  },
+  "inscription": {
+    "id": "3333333333333333333333333333333333333333333333333333333333333333i0",
+    "number": 0,
+    "address": "bcrt1p8wpt9v4frpf3tkn0srd97pksgsxc5hs52lafxwru9kgeephvs7rqjeprhg",
+    "satpoint": "2222222222222222222222222222222222222222222222222222222222222222:0:0",
+    "value": 10000,
+    "fee": 240,
+    "height": 307,
+    "timestamp": 1740000600,
+    "content_type": "image/png",
+    "content_length": 68
+  },
+  "fees": { "fastestFee": 2, "halfHourFee": 2, "hourFee": 1, "economyFee": 1, "minimumFee": 1 }
+}
