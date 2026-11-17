@@ -19,13 +19,16 @@ export async function startRegtestReplay() {
   const json = (route: string, value: unknown) =>
     routes.set(route, [200, 'application/json', JSON.stringify(value)]);
   const text = (route: string, value: string) => routes.set(route, [200, 'text/plain', value]);
+  const redirects = new Map<string, string>();
   const absent = (route: string) => routes.set(route, [404, 'text/plain', 'not indexed']);
   text('/api/blocks/tip/hash', replay.tip);
   text('/api/blocks/tip/height', String(replay.height));
   absent('/api/fee-estimates');
   absent(`/api/tx/${unknownParent}`);
+  absent(`/output/${unknownParent}:0`);
   json('/api/v1/fees/recommended', replay.fees);
   text('/r/blockheight', String(replay.height));
+  json('/r/blockhash/0', '0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206');
   json(`/r/blockhash/${replay.height}`, replay.tip);
   absent(`/api/block-height/${replay.height}`);
   for (const address of Object.values(replay.addresses)) {
@@ -75,15 +78,22 @@ export async function startRegtestReplay() {
   const requests: string[] = [];
   const unexpected: string[] = [];
   const broadcasts: Transaction[] = [];
+  let broadcastGate: Promise<void> | undefined;
   const server = createServer(async (request, response) => {
     const route = request.url ?? '';
     requests.push(`${request.method} ${route}`);
+    const location = redirects.get(route);
+    if (location) {
+      response.writeHead(307, { location }).end();
+      return;
+    }
     if (request.method === 'POST' && route === '/api/tx') {
       try {
         const chunks: Buffer[] = [];
         for await (const chunk of request) chunks.push(chunk);
         const tx = Transaction.fromRaw(hex.decode(Buffer.concat(chunks).toString()));
         broadcasts.push(tx);
+        await broadcastGate;
         response.writeHead(200, { 'content-type': 'text/plain' }).end(tx.id);
       } catch {
         response.writeHead(400).end('Expected raw transaction hex');
@@ -111,6 +121,20 @@ export async function startRegtestReplay() {
     requests,
     unexpected,
     broadcasts,
+    json,
+    text,
+    absent,
+    redirects,
+    pauseBroadcast() {
+      let resume: () => void;
+      broadcastGate = new Promise<void>((resolve) => {
+        resume = resolve;
+      });
+      return () => {
+        broadcastGate = undefined;
+        resume();
+      };
+    },
     close: () =>
       new Promise<void>((resolve) => {
         server.close(() => resolve());

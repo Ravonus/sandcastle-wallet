@@ -28,7 +28,7 @@ A fresh install selects **Regtest** with both URLs blank. Open **Settings → Ne
 | Bitcoin API URL (esplora-style) | `http://localhost:3002/api` |
 | Ord API URL | `http://localhost:80` |
 
-Enter the Bitcoin API prefix if your service has one. The Ord URL is the server root serving `/r/blockheight`, `/output/<outpoint>`, `/inscription/<id>`, and `/content/<id>`. Save checks the Bitcoin tip and indexed Ord height. **Save anyway** lets you keep the settings while services are offline. Restart or refresh your wallet views after your services come online.
+Enter the Bitcoin API prefix if your service has one. The Ord URL is the server root serving `/r/blockheight`, `/output/<outpoint>`, `/inscription/<id>`, and `/content/<id>`. Save checks the Bitcoin tip and indexed Ord height. If Ord answers the genesis lookup, its hash must match Regtest. The wallet warns if Ord is more than one block behind Bitcoin or the endpoints report different hashes at the same height. **Save anyway** lets you keep the settings while services are offline. Restart or refresh your wallet views after your services come online.
 
 The wallet uses these endpoints for Bitcoin balances, fees, inscriptions, and broadcasts. On Regtest it disables hosted fiat prices and charts, announcements, dApp discovery, buy and swaps, stacking and Stacks, token services for runes and BRC-20, hosted inscription orders, and Ledger and Keystone. Analytics are disabled throughout this fork.
 
@@ -41,8 +41,11 @@ The connector exposes the account's ordinals and payment roles, eligible payment
 ## Known limits
 
 - Partial Esplora backends can supply spendable outputs without address history. History and pending activity depend on backend support. Regtest speed-up and RBF are disabled.
-- Funding requires confirmed UTXOs whose Ord output records match the address and value and show no inscriptions or observed runes. Detection depends on the indexes your Ord server provides. The wallet does not enforce coinbase maturity or track a local queue of pending spends on confirmed-only backends.
-- Inscription views render images and plain text. Other media uses a placeholder. An unindexed or unavailable detail can limit what the wallet can show.
+- Funding requires confirmed UTXOs whose Ord output records match the address and value and show no inscriptions or observed runes. Funding safety relies on the configured Ord server indexing inscriptions for the same Bitcoin chain. Funding also checks the outspend route and coinbase maturity when those facts are available. The extension tracks submitted inputs until scans stop returning them.
+- Inscription views render images and plain text. Other media uses a placeholder. A held inscription with unavailable details keeps its ID, with an unknown offset.
+- `ALL|ANYONECANPAY` can display fee and inscription routing even though additional inputs can change them. Requests without input descriptors can mark external inputs as signing candidates in the preview.
+- The Taproot script-path signer assumes the default code separator position. Leaves using `OP_CODESEPARATOR` can produce invalid signatures.
+- Some shared TypeScript return types are wider to accommodate missing Regtest metadata. Hosted helpers that take no Bitcoin network rely on the extension's caller-side Regtest guards.
 - The marketplace compatibility connector supplies wallet approvals and signatures. Marketplace inventory, attestation, co-signatures, and settlement depend on the site and its services.
 
 Run the localhost replay and coexistence checks against the production bundle:
