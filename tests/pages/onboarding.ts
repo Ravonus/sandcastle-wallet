@@ -6,9 +6,9 @@ import fs from 'fs';
 import path from 'path';
 
 export default class Onboarding {
-  readonly linkTOS: Locator;
+  readonly linkExtensionLicense: Locator;
 
-  readonly linkPrivacy: Locator;
+  readonly linkCoreLicense: Locator;
 
   readonly buttonAccept: Locator;
 
@@ -100,11 +100,11 @@ export default class Onboarding {
     this.labelSecurityLevelWeak = page.locator('p').filter({ hasText: 'Weak' });
     this.labelSecurityLevelMedium = page.locator('p').filter({ hasText: 'Medium' });
     this.labelSecurityLevelStrong = page.locator('p').filter({ hasText: 'Strong' });
-    this.linkTOS = page.getByRole('link', { name: 'Terms of Service' });
-    this.linkPrivacy = page.getByRole('link', { name: 'Privacy Policy' });
+    this.linkExtensionLicense = page.getByRole('link', { name: 'Extension licence' });
+    this.linkCoreLicense = page.getByRole('link', { name: 'Wallet core licence' });
     this.buttonAccept = page.getByRole('button', { name: 'Accept' });
     this.imageSuccess = page.locator('img[alt="success"]');
-    this.instruction = page.getByRole('heading', { name: 'Locate Xverse' });
+    this.instruction = page.getByRole('heading', { name: /Locate Sandcastle Wallet/ });
     this.headingWalletRestored = page.getByRole('heading', { name: 'Wallet restored' });
     this.buttonCloseTab = page.getByRole('button', { name: 'Close this tab' });
     this.headingRestoreWallet = page.getByRole('heading', { name: 'Restore Wallet' });
@@ -124,31 +124,15 @@ export default class Onboarding {
     return seedWord;
   }
 
-  async checkLegalPage(context) {
-    await expect(this.page.url()).toContain('legal');
-    // TODO: Selector outsource
-    await expect(this.page.locator('div > h1:first-child')).toHaveText(/Legal/);
-    // check that the links contain href values
-    // TODO: better selectors for link selection
-    const linkList = this.page.locator('#app a');
-    for (let i = 0; i < (await linkList.count()); i++) {
-      expect(await linkList.nth(i).getAttribute('href')).not.toBeNull();
-    }
-    await expect(this.page.locator('label[role="checkbox"]')).toBeVisible();
+  async checkLegalPage() {
+    await expect(this.page).toHaveURL(/legal/);
+    await expect(this.page.getByRole('heading', { name: 'Legal' })).toBeVisible();
+    await expect(this.page.locator('#app')).toContainText(
+      'This independent derivative is distributed solely for Non-Commercial Use',
+    );
+    await expect(this.linkExtensionLicense).toHaveAttribute('href', /\/LICENSE$/);
+    await expect(this.linkCoreLicense).toHaveAttribute('href', /\/LICENSE-core$/);
     await expect(this.buttonAccept).toBeVisible();
-
-    // check links
-    await this.linkTOS.click();
-    await context.waitForEvent('page');
-    // To check the newest open Tab
-    let newPage = await context.pages()[context.pages().length - 1];
-    await newPage.waitForURL('https://www.xverse.app/terms');
-    await newPage.close();
-    await this.linkPrivacy.click();
-    await context.waitForEvent('page');
-    newPage = await context.pages()[context.pages().length - 1];
-    await newPage.waitForURL('https://www.xverse.app/privacy');
-    await newPage.close();
   }
 
   async navigateToBackupPage() {

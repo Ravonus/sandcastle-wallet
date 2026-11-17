@@ -7,11 +7,11 @@ import Wallet from '../pages/wallet';
 const strongPW = Onboarding.generateSecurePasswordCrypto();
 
 test.describe('onboarding flow', () => {
-  test('visual check legal page', async ({ page, context, extensionId }) => {
+  test('visual check legal page', async ({ page, extensionId }) => {
     const onboardingPage = new Onboarding(page);
     // Skip Landing and go directly to legal via URL
     await page.goto(`chrome-extension://${extensionId}/options.html#/legal`);
-    await onboardingPage.checkLegalPage(context);
+    await onboardingPage.checkLegalPage();
   });
 
   // Visual check of the first page for backup
