@@ -202,13 +202,15 @@ const migrations = {
   },
   10: (state: WalletStateV9): WalletState => {
     const legacyBitcoinUrl = 'https://beta.sbtc-mempool.tech/api/proxy';
+    const legacyStacksUrl = 'https://api.testnet.hiro.so';
     const migrateNetwork = (network: SettingsNetwork): SettingsNetwork =>
       network.type === 'Regtest'
         ? {
             ...network,
-            address: '',
+            address: network.address === legacyStacksUrl ? '' : network.address ?? '',
             btcApiUrl: network.btcApiUrl === legacyBitcoinUrl ? '' : network.btcApiUrl ?? '',
-            fallbackBtcApiUrl: '',
+            fallbackBtcApiUrl:
+              network.fallbackBtcApiUrl === legacyBitcoinUrl ? '' : network.fallbackBtcApiUrl ?? '',
             ordApiUrl: network.ordApiUrl ?? '',
           }
         : network;
