@@ -17,6 +17,7 @@ import path from 'node:path';
 import type {} from '../../src/inpage/regtestConnector';
 import replay from '../fixtures/sandcastle-regtest/replay.json';
 import {
+  missingInscriptionId,
   ordinalOutpoint,
   outputScript,
   regtest,
@@ -236,22 +237,26 @@ test('Regtest restores locally, renders an inscription and approves marketplace 
     await expect(wallet.getByText(/bcrt1q/).first()).toBeVisible();
     await expect(wallet.getByText(/bcrt1p/).first()).toBeVisible();
 
-    fixture.absent(detailRoute);
     await wallet.goto(`${extensionOrigin}/popup.html#/nft-dashboard`);
-    await expect(wallet.getByTestId('inscription-name')).toHaveText(replay.inscription.id);
+    const missingTile = wallet
+      .getByTestId('collection-container')
+      .filter({ hasText: missingInscriptionId });
+    await expect(missingTile.getByTestId('inscription-name')).toHaveText(missingInscriptionId);
+    await expect(
+      missingTile.getByText('Inscription details unavailable', { exact: true }),
+    ).toBeVisible();
+    await missingTile.getByTestId('inscription-container').click();
+    await expect(wallet.getByText(missingInscriptionId, { exact: true })).toBeVisible();
     await expect(
       wallet.getByText('Inscription details unavailable', { exact: true }),
     ).toBeVisible();
-    await wallet.getByTestId('inscription-container').click();
-    await expect(wallet.getByText(replay.inscription.id, { exact: true })).toBeVisible();
-    await expect(
-      wallet.getByText('Inscription details unavailable', { exact: true }),
-    ).toBeVisible();
-    fixture.json(detailRoute, replay.inscription);
     await wallet.goto(`${extensionOrigin}/popup.html#/nft-dashboard`);
-    await wallet.reload();
-    await expect(wallet.getByTestId('inscription-name')).toHaveText('0');
-    const tile = wallet.getByTestId('inscription-container').first();
+    const tile = wallet
+      .getByTestId('collection-container')
+      .filter({
+        has: wallet.getByTestId('inscription-name').filter({ hasText: /^0$/ }),
+      })
+      .getByTestId('inscription-container');
     const thumbnail = tile.getByTestId('token-image').locator('img');
     await expect(thumbnail).toHaveAttribute('src', /^blob:/);
     await expect

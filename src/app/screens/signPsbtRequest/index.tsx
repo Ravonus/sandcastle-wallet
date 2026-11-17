@@ -33,6 +33,7 @@ function SignPsbtRequest() {
   const runeId = searchParams.get('runeId');
   const [isLoading, setIsLoading] = useState(true);
   const [isSigning, setIsSigning] = useState(false);
+  const [signingError, setSigningError] = useState<{ error: string; errorTitle: string }>();
   const [summary, setSummary] = useState<PSBTSummary | undefined>();
   const { payload, parsedPsbt, confirmSignPsbt, cancelSignPsbt, onCloseError, params, txnContext } =
     useSignPsbt();
@@ -78,7 +79,7 @@ function SignPsbtRequest() {
     ledgerTransport?: LedgerTransport;
     keystoneTransport?: KeystoneTransport;
   }) => {
-    if (!parsedPsbt || validationError || !summary) return;
+    if (!parsedPsbt || validationError || signingError || !summary) return;
 
     setIsSigning(true);
     try {
@@ -142,7 +143,7 @@ function SignPsbtRequest() {
     } catch (err) {
       setIsSigning(false);
       if (err instanceof Error) {
-        setValidationError({
+        setSigningError({
           errorTitle: t('PSBT_CANT_SIGN_ERROR_TITLE'),
           error: err.message,
         });
@@ -160,18 +161,19 @@ function SignPsbtRequest() {
     }
   };
 
+  const requestError = signingError ?? validationError;
   const onCloseClick = () => {
-    onCloseError(validationError?.error || '');
+    onCloseError(requestError?.error || '');
     window.close();
   };
 
-  if (validationError) {
+  if (requestError) {
     return (
       <RequestError
-        error={validationError.error}
-        errorTitle={validationError.errorTitle}
+        error={requestError.error}
+        errorTitle={requestError.errorTitle}
         onClose={onCloseClick}
-        textAlignment={validationError.alignment}
+        textAlignment={'alignment' in requestError ? requestError.alignment : undefined}
       />
     );
   }

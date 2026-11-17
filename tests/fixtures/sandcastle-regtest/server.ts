@@ -8,6 +8,8 @@ export const regtest = { ...TEST_NETWORK, bech32: 'bcrt' };
 export const outputScript = (address: string) => OutScript.encode(Address(regtest).decode(address));
 export const unknownParent = '44'.repeat(32);
 export const ordinalOutpoint = `${replay.ordinal.txid}:${replay.ordinal.vout}`;
+export const missingInscriptionId = `${'99'.repeat(32)}i0`;
+const missingInscriptionCoin = { ...replay.ordinal, txid: '88'.repeat(32) };
 const paymentOutpoint = `${replay.payment.txid}:${replay.payment.vout}`;
 const png = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aS+0AAAAASUVORK5CYII=',
@@ -34,7 +36,7 @@ export async function startRegtestReplay() {
   for (const address of Object.values(replay.addresses)) {
     const utxos =
       address === replay.addresses.ordinals
-        ? [replay.ordinal]
+        ? [replay.ordinal, missingInscriptionCoin]
         : address === replay.addresses.payment
         ? [replay.payment]
         : [];
@@ -45,6 +47,12 @@ export async function startRegtestReplay() {
   }
   for (const [outpoint, coin, address, inscriptions] of [
     [ordinalOutpoint, replay.ordinal, replay.addresses.ordinals, [replay.inscription.id]],
+    [
+      `${missingInscriptionCoin.txid}:0`,
+      missingInscriptionCoin,
+      replay.addresses.ordinals,
+      [missingInscriptionId],
+    ],
     [paymentOutpoint, replay.payment, replay.addresses.payment, []],
   ] as const) {
     json(`/output/${outpoint}`, {
@@ -71,6 +79,7 @@ export async function startRegtestReplay() {
     json(`/api/tx/${coin.txid}/outspend/${coin.vout}`, { spent: false });
   }
   json(`/inscription/${replay.inscription.id}`, replay.inscription);
+  absent(`/inscription/${missingInscriptionId}`);
   routes.set(`/content/${replay.inscription.id}`, [200, 'image/png', png]);
   routes.set('/site', [200, 'text/html', '<!doctype html><title>Local Regtest test dApp</title>']);
   routes.set('/favicon.ico', [204, 'image/x-icon', '']);
