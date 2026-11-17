@@ -66,8 +66,11 @@ function makeConfig(opts) {
         },
         {
           test: new RegExp('.(' + fileExtensions.join('|') + ')$'),
-          type: 'asset/resource',
           exclude: /node_modules/,
+          oneOf: [
+            { resourceQuery: /^\?inline$/, type: 'asset/inline' },
+            { type: 'asset/resource' },
+          ],
         },
         {
           test: /\.html$/,

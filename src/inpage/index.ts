@@ -1,55 +1,25 @@
-import { type BitcoinProvider } from '@sats-connect/core';
-import { type StacksProvider } from '@stacks/connect';
-
-import { XverseProviderInfo } from '@utils/constants';
+import type { BitcoinProvider } from '@sats-connect/core';
+import type { StacksProvider } from '@stacks/connect';
+import { SandcastleProviderInfo } from '@utils/constants';
 import SatsMethodsProvider from './sats.inpage';
 import StacksMethodsProvider from './stacks.inpage';
 
 declare global {
-  interface XverseProviders {
-    StacksProvider: StacksProvider;
+  interface Window {
+    SandcastleProviders?: {
+      BitcoinProvider: BitcoinProvider;
+      StacksProvider: StacksProvider;
+    };
   }
 }
 
-// We inject the providers in an Xverse object in order to have them exclusively available for Xverse wallet
-// and not clash with providers from other wallets
-window.XverseProviders = {
-  // @ts-ignore
+window.SandcastleProviders ??= {
+  BitcoinProvider: SatsMethodsProvider,
   StacksProvider: StacksMethodsProvider as StacksProvider,
-  BitcoinProvider: SatsMethodsProvider as BitcoinProvider,
 };
 
-// we inject these in case implementors call the default providers
-try {
-  if (document.currentScript?.dataset.isPriority) {
-    Object.defineProperties(window, {
-      StacksProvider: { get: () => StacksMethodsProvider, set: () => {} },
-    });
-  } else {
-    window.StacksProvider = StacksMethodsProvider as StacksProvider;
-  }
-} catch (e) {
-  console.log(
-    'Failed setting Xverse Stacks default provider. Another wallet may have already set it in an immutable way.',
-  );
-  console.error(e);
+window.btc_providers ??= [];
+const providers = window.btc_providers;
+if (!providers.some(({ id }) => id === SandcastleProviderInfo.id)) {
+  providers.push(SandcastleProviderInfo);
 }
-
-try {
-  if (document.currentScript?.dataset.isPriority) {
-    Object.defineProperties(window, {
-      BitcoinProvider: { get: () => SatsMethodsProvider, set: () => {} },
-    });
-  } else {
-    window.BitcoinProvider = SatsMethodsProvider;
-  }
-} catch (e) {
-  console.log(
-    'Failed setting Xverse Bitcoin default provider. Another wallet may have already set it in an immutable way.',
-  );
-  console.error(e);
-}
-
-if (!window.btc_providers) window.btc_providers = [];
-
-window.btc_providers.push(XverseProviderInfo);

@@ -6,4 +6,4 @@ Each feature provides its own wrappers for sending messages as required,
 
 ![Message flow](message-flow.png)
 
-The existing RPC methods have not yet been migrated to this area of the code.
+RPC responses, including popup-close errors, use the runtime RPC message type in `schemas.ts`. The content script posts them to the page inside a `sandcastle-extension` envelope. The inpage Bitcoin provider unwraps the envelope and returns the original JSON-RPC result to the caller.

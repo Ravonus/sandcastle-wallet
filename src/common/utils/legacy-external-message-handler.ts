@@ -15,6 +15,7 @@ import {
 import { sendMessage } from '../types/messages';
 import popupCenter from './popup-center';
 import RequestsRoutes from './route-urls';
+import { sendRpcResponse } from './rpc/helpers';
 
 type ParamsObject = Record<string, string | null | undefined>;
 export type ParamsKeyValueArray = [string, string | null | undefined][];
@@ -50,11 +51,17 @@ interface ListenForPopupCloseArgs {
   response: LegacyMessageToContentScript | SatsConnectMessageToContentScript | RpcErrorResponse;
 }
 export function listenForPopupClose({ id, tabId, response }: ListenForPopupCloseArgs) {
-  chrome.windows.onRemoved.addListener((winId) => {
-    if (winId !== id || !tabId) return;
-    const responseMessage = response;
-    chrome.tabs.sendMessage(tabId, responseMessage);
-  });
+  if (id === undefined || tabId === undefined) return;
+  const onRemoved = (winId: number) => {
+    if (winId !== id) return;
+    chrome.windows.onRemoved.removeListener(onRemoved);
+    if ('jsonrpc' in response) {
+      sendRpcResponse(tabId, response);
+    } else {
+      chrome.tabs.sendMessage(tabId, response);
+    }
+  };
+  chrome.windows.onRemoved.addListener(onRemoved);
 }
 
 interface FormatMessageSigningResponseArgs {

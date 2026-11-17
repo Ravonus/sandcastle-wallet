@@ -7,9 +7,13 @@ import type {
 } from '@sats-connect/core';
 import type { FinishedTxPayload, SignatureData, SponsoredFinishedTxPayload } from '@stacks/connect';
 
-export const MESSAGE_SOURCE = 'xverse-wallet';
+export const MESSAGE_SOURCE = 'sandcastle-wallet';
 
-export const CONTENT_SCRIPT_PORT = 'xverse-content-script';
+export const CONTENT_SCRIPT_PORT = 'sandcastle-content-script';
+
+export const PAGE_APP_SOURCE = 'sandcastle-app';
+export const PAGE_EXTENSION_SOURCE = 'sandcastle-extension';
+export const LEGACY_RESPONSE_CHANNEL = 'sandcastle-legacy-response';
 
 /**
  * Stacks External Callable Methods

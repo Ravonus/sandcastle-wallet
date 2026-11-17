@@ -1,7 +1,7 @@
 import { rpcResponseMessageSchema, walletEventSchema } from '@sats-connect/core';
 import * as v from 'valibot';
 
-export const contentScriptWalletEventMessageName = 'wallet-event';
+export const contentScriptWalletEventMessageName = 'sandcastle-wallet-event';
 export const contentScriptWalletEventMessageSchema = v.object({
   type: v.literal(contentScriptWalletEventMessageName),
   data: walletEventSchema,
@@ -16,12 +16,12 @@ export type ContentScriptWalletEventMessage = v.InferOutput<
 /**
  * @public
  */
-export const contentScriptRrpcResponseMessageName = 'rpc-response';
+export const contentScriptRpcResponseMessageName = 'sandcastle-rpc-response';
 /**
  * @public
  */
 export const contentScriptRpcResponseMessageSchema = v.object({
-  type: v.literal(contentScriptRrpcResponseMessageName),
+  type: v.literal(contentScriptRpcResponseMessageName),
   data: rpcResponseMessageSchema,
 });
 /**

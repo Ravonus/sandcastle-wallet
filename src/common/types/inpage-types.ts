@@ -2,18 +2,18 @@
  * Inpage Script (Stacks Provider / BitcoinProvider) <-> Content Script
  */
 export enum DomEventName {
-  authenticationRequest = 'xverse_stx_authentication_request',
-  signatureRequest = 'xverse_stx_signature_request',
-  structuredDataSignatureRequest = 'xverse_stx_structured_data_signature_request',
-  transactionRequest = 'xverse_stx_transaction_request',
-  getAddressRequest = 'xverse_btc_address_request',
-  signPsbtRequest = 'xverse_btc_sats_psbt_request',
-  signBatchPsbtRequest = 'xverse_btc_batch_psbt_request',
-  signMessageRequest = 'xverse_btc_sign_message_request',
-  sendBtcRequest = 'xverse_btc_send_request',
-  createInscriptionRequest = 'xverse_btc_create_inscription_Request',
-  createRepeatInscriptionsRequest = 'xverse_btc_create_repeat_inscriptions_request',
-  rpcRequest = 'xverse_rpc_request',
+  authenticationRequest = 'sandcastle_stx_authentication_request',
+  signatureRequest = 'sandcastle_stx_signature_request',
+  structuredDataSignatureRequest = 'sandcastle_stx_structured_data_signature_request',
+  transactionRequest = 'sandcastle_stx_transaction_request',
+  getAddressRequest = 'sandcastle_btc_address_request',
+  signPsbtRequest = 'sandcastle_btc_sats_psbt_request',
+  signBatchPsbtRequest = 'sandcastle_btc_batch_psbt_request',
+  signMessageRequest = 'sandcastle_btc_sign_message_request',
+  sendBtcRequest = 'sandcastle_btc_send_request',
+  createInscriptionRequest = 'sandcastle_btc_create_inscription_Request',
+  createRepeatInscriptionsRequest = 'sandcastle_btc_create_repeat_inscriptions_request',
+  rpcRequest = 'sandcastle_rpc_request',
 }
 
 export interface AuthenticationRequestEventDetails {

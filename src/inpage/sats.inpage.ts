@@ -18,6 +18,7 @@ import {
   type SignMessageResponseMessage,
   type SignPsbtResponseMessage,
 } from '@common/types/message-types';
+import { contentScriptRpcResponseMessageName } from '@common/utils/messages/extensionToContentScript/schemas';
 import {
   rpcResponseMessageSchema,
   type BitcoinProvider,
@@ -34,50 +35,34 @@ import {
 import { nanoid } from 'nanoid';
 import * as v from 'valibot';
 import { addListener } from './eventHandlers';
-import { isValidLegacyEvent } from './utils';
+import { requestLegacy, waitForPageResponse } from './utils';
 
 const SatsMethodsProvider: BitcoinProvider = {
   connect: async (btcAddressRequest): Promise<GetAddressResponse> => {
     const event = new CustomEvent<GetAddressRequestEventDetails>(DomEventName.getAddressRequest, {
       detail: { btcAddressRequest },
     });
-    document.dispatchEvent(event);
-    return new Promise((resolve, reject) => {
-      const handleMessage = (eventMessage: MessageEvent<GetAddressResponseMessage>) => {
-        if (!isValidLegacyEvent(eventMessage, SatsConnectMethods.getAddressResponse)) return;
-        if (eventMessage.data.payload?.addressRequest !== btcAddressRequest) return;
-        window.removeEventListener('message', handleMessage);
-        if (eventMessage.data.payload.addressResponse === 'cancel') {
-          reject(eventMessage.data.payload.addressResponse);
-          return;
-        }
-        if (typeof eventMessage.data.payload.addressResponse !== 'string') {
-          resolve(eventMessage.data.payload.addressResponse);
-        }
-      };
-      window.addEventListener('message', handleMessage);
-    });
+    const { addressResponse } = await requestLegacy<GetAddressResponseMessage>(
+      event,
+      SatsConnectMethods.getAddressResponse,
+      { addressRequest: btcAddressRequest },
+    );
+    if (addressResponse === 'cancel') return Promise.reject(addressResponse);
+    if (typeof addressResponse === 'string') throw new Error('Invalid wallet response');
+    return addressResponse;
   },
   signTransaction: async (signPsbtRequest: string): Promise<SignTransactionResponse> => {
     const event = new CustomEvent<SignPsbtRequestEventDetails>(DomEventName.signPsbtRequest, {
       detail: { signPsbtRequest },
     });
-    document.dispatchEvent(event);
-    return new Promise((resolve, reject) => {
-      const handleMessage = (eventMessage: MessageEvent<SignPsbtResponseMessage>) => {
-        if (!isValidLegacyEvent(eventMessage, SatsConnectMethods.signPsbtResponse)) return;
-        if (eventMessage.data.payload?.signPsbtRequest !== signPsbtRequest) return;
-        window.removeEventListener('message', handleMessage);
-        if (eventMessage.data.payload.signPsbtResponse === 'cancel') {
-          reject(eventMessage.data.payload.signPsbtResponse);
-          return;
-        }
-        if (typeof eventMessage.data.payload.signPsbtResponse !== 'string') {
-          resolve(eventMessage.data.payload.signPsbtResponse);
-        }
-      };
-      window.addEventListener('message', handleMessage);
-    });
+    const { signPsbtResponse } = await requestLegacy<SignPsbtResponseMessage>(
+      event,
+      SatsConnectMethods.signPsbtResponse,
+      { signPsbtRequest },
+    );
+    if (signPsbtResponse === 'cancel') return Promise.reject(signPsbtResponse);
+    if (typeof signPsbtResponse === 'string') throw new Error('Invalid wallet response');
+    return signPsbtResponse;
   },
   signMultipleTransactions: async (
     signBatchPsbtRequest: string,
@@ -88,64 +73,40 @@ const SatsMethodsProvider: BitcoinProvider = {
         detail: { signBatchPsbtRequest },
       },
     );
-    document.dispatchEvent(event);
-    return new Promise((resolve, reject) => {
-      const handleMessage = (eventMessage: MessageEvent<SignBatchPsbtResponseMessage>) => {
-        if (!isValidLegacyEvent(eventMessage, SatsConnectMethods.signBatchPsbtResponse)) return;
-        if (eventMessage.data.payload?.signBatchPsbtRequest !== signBatchPsbtRequest) return;
-        window.removeEventListener('message', handleMessage);
-        if (eventMessage.data.payload.signBatchPsbtResponse === 'cancel') {
-          reject(eventMessage.data.payload.signBatchPsbtResponse);
-          return;
-        }
-        if (typeof eventMessage.data.payload.signBatchPsbtResponse !== 'string') {
-          resolve(eventMessage.data.payload.signBatchPsbtResponse);
-        }
-      };
-      window.addEventListener('message', handleMessage);
-    });
+    const { signBatchPsbtResponse } = await requestLegacy<SignBatchPsbtResponseMessage>(
+      event,
+      SatsConnectMethods.signBatchPsbtResponse,
+      { signBatchPsbtRequest },
+    );
+    if (signBatchPsbtResponse === 'cancel') return Promise.reject(signBatchPsbtResponse);
+    if (typeof signBatchPsbtResponse === 'string') throw new Error('Invalid wallet response');
+    return signBatchPsbtResponse;
   },
   signMessage: async (signMessageRequest: string): Promise<string> => {
     const event = new CustomEvent<SignMessageRequestEventDetails>(DomEventName.signMessageRequest, {
       detail: { signMessageRequest },
     });
-    document.dispatchEvent(event);
-    return new Promise((resolve, reject) => {
-      const handleMessage = (eventMessage: MessageEvent<SignMessageResponseMessage>) => {
-        if (!isValidLegacyEvent(eventMessage, SatsConnectMethods.signMessageResponse)) return;
-        if (eventMessage.data.payload?.signMessageRequest !== signMessageRequest) return;
-        window.removeEventListener('message', handleMessage);
-        if (eventMessage.data.payload.signMessageResponse === 'cancel') {
-          reject(eventMessage.data.payload.signMessageResponse);
-          return;
-        }
-        if (typeof eventMessage.data.payload.signMessageResponse === 'string') {
-          resolve(eventMessage.data.payload.signMessageResponse);
-        }
-      };
-      window.addEventListener('message', handleMessage);
-    });
+    const { signMessageResponse } = await requestLegacy<SignMessageResponseMessage>(
+      event,
+      SatsConnectMethods.signMessageResponse,
+      { signMessageRequest },
+    );
+    if (signMessageResponse === 'cancel') return Promise.reject(signMessageResponse);
+    if (typeof signMessageResponse !== 'string') throw new Error('Invalid wallet response');
+    return signMessageResponse;
   },
   sendBtcTransaction: async (sendBtcRequest: string): Promise<string> => {
     const event = new CustomEvent<SendBtcRequestEventDetails>(DomEventName.sendBtcRequest, {
       detail: { sendBtcRequest },
     });
-    document.dispatchEvent(event);
-    return new Promise((resolve, reject) => {
-      const handleMessage = (eventMessage: MessageEvent<SendBtcResponseMessage>) => {
-        if (!isValidLegacyEvent(eventMessage, SatsConnectMethods.sendBtcResponse)) return;
-        if (eventMessage.data.payload?.sendBtcRequest !== sendBtcRequest) return;
-        window.removeEventListener('message', handleMessage);
-        if (eventMessage.data.payload.sendBtcResponse === 'cancel') {
-          reject(eventMessage.data.payload.sendBtcResponse);
-          return;
-        }
-        if (typeof eventMessage.data.payload.sendBtcResponse === 'string') {
-          resolve(eventMessage.data.payload.sendBtcResponse);
-        }
-      };
-      window.addEventListener('message', handleMessage);
-    });
+    const { sendBtcResponse } = await requestLegacy<SendBtcResponseMessage>(
+      event,
+      SatsConnectMethods.sendBtcResponse,
+      { sendBtcRequest },
+    );
+    if (sendBtcResponse === 'cancel') return Promise.reject(sendBtcResponse);
+    if (typeof sendBtcResponse !== 'string') throw new Error('Invalid wallet response');
+    return sendBtcResponse;
   },
   createInscription: async (
     createInscriptionRequest: string,
@@ -156,23 +117,14 @@ const SatsMethodsProvider: BitcoinProvider = {
         detail: { createInscriptionRequest },
       },
     );
-    document.dispatchEvent(event);
-    return new Promise((resolve, reject) => {
-      const handleMessage = (eventMessage: MessageEvent<CreateInscriptionResponseMessage>) => {
-        if (!isValidLegacyEvent(eventMessage, SatsConnectMethods.createInscriptionResponse)) return;
-        if (eventMessage.data.payload?.createInscriptionRequest !== createInscriptionRequest)
-          return;
-        window.removeEventListener('message', handleMessage);
-        if (eventMessage.data.payload.createInscriptionResponse === 'cancel') {
-          reject(eventMessage.data.payload.createInscriptionResponse);
-          return;
-        }
-        if (typeof eventMessage.data.payload.createInscriptionResponse !== 'string') {
-          resolve(eventMessage.data.payload.createInscriptionResponse);
-        }
-      };
-      window.addEventListener('message', handleMessage);
-    });
+    const { createInscriptionResponse } = await requestLegacy<CreateInscriptionResponseMessage>(
+      event,
+      SatsConnectMethods.createInscriptionResponse,
+      { createInscriptionRequest },
+    );
+    if (createInscriptionResponse === 'cancel') return Promise.reject(createInscriptionResponse);
+    if (typeof createInscriptionResponse === 'string') throw new Error('Invalid wallet response');
+    return createInscriptionResponse;
   },
   createRepeatInscriptions: async (
     createRepeatInscriptionsRequest: string,
@@ -183,29 +135,17 @@ const SatsMethodsProvider: BitcoinProvider = {
         detail: { createRepeatInscriptionsRequest },
       },
     );
-    document.dispatchEvent(event);
-    return new Promise((resolve, reject) => {
-      const handleMessage = (
-        eventMessage: MessageEvent<CreateRepeatInscriptionsResponseMessage>,
-      ) => {
-        if (!isValidLegacyEvent(eventMessage, SatsConnectMethods.createRepeatInscriptionsResponse))
-          return;
-        if (
-          eventMessage.data.payload?.createRepeatInscriptionsRequest !==
-          createRepeatInscriptionsRequest
-        )
-          return;
-        window.removeEventListener('message', handleMessage);
-        if (eventMessage.data.payload.createRepeatInscriptionsResponse === 'cancel') {
-          reject(eventMessage.data.payload.createRepeatInscriptionsResponse);
-          return;
-        }
-        if (typeof eventMessage.data.payload.createRepeatInscriptionsResponse !== 'string') {
-          resolve(eventMessage.data.payload.createRepeatInscriptionsResponse);
-        }
-      };
-      window.addEventListener('message', handleMessage);
-    });
+    const { createRepeatInscriptionsResponse } =
+      await requestLegacy<CreateRepeatInscriptionsResponseMessage>(
+        event,
+        SatsConnectMethods.createRepeatInscriptionsResponse,
+        { createRepeatInscriptionsRequest },
+      );
+    if (createRepeatInscriptionsResponse === 'cancel')
+      return Promise.reject(createRepeatInscriptionsResponse);
+    if (typeof createRepeatInscriptionsResponse === 'string')
+      throw new Error('Invalid wallet response');
+    return createRepeatInscriptionsResponse;
   },
   request: async <Method extends keyof Requests>(
     method: Method,
@@ -219,33 +159,18 @@ const SatsMethodsProvider: BitcoinProvider = {
       params,
     };
     const rpcRequestEvent = new CustomEvent(DomEventName.rpcRequest, { detail: rpcRequest });
-    document.dispatchEvent(rpcRequestEvent);
-    return new Promise((resolve) => {
-      function handleRpcResponseEvent(message: MessageEvent<unknown>) {
-        const parseResult = v.safeParse(rpcResponseMessageSchema, message.data);
-
-        if (!parseResult.success) {
-          // Ignore message if it's not an RPC message.
-          return;
+    return waitForPageResponse(
+      contentScriptRpcResponseMessageName,
+      () => document.dispatchEvent(rpcRequestEvent),
+      (data) => {
+        const parsed = v.safeParse(rpcResponseMessageSchema, data);
+        // JSON-RPC responses carry the request ID, so the method is bound by that ID.
+        if (parsed.success && parsed.output.id === id) {
+          return parsed.output as RpcResponse<Method>;
         }
-
-        const rpcResponseMessage = parseResult.output;
-
-        if (rpcResponseMessage.id !== id) {
-          // Ignore message if it's not a response to the current request.
-          return;
-        }
-
-        window.removeEventListener('message', handleRpcResponseEvent);
-
-        // NOTE: Ideally the response would be runtime type-checked before the
-        // promise is resolved since the message crosses a type assertion
-        // boundary. For now, since all the responses are typed, it's relatively
-        // safe to assume that the message will conform to the expected type.
-        return resolve(rpcResponseMessage as RpcResponse<Method>);
-      }
-      window.addEventListener('message', handleRpcResponseEvent);
-    });
+        return undefined;
+      },
+    );
   },
   addListener,
 };

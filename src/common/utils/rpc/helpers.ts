@@ -1,4 +1,4 @@
-import { MESSAGE_SOURCE } from '@common/types/message-types';
+import { contentScriptRpcResponseMessageName } from '@common/utils/messages/extensionToContentScript/schemas';
 import {
   RpcErrorCode,
   type Requests,
@@ -32,8 +32,8 @@ export function sendRpcResponse<Method extends keyof Requests>(
   response: RpcSuccessResponse<Method> | RpcErrorResponse,
 ) {
   chrome.tabs.sendMessage(+tabId, {
-    ...response,
-    source: MESSAGE_SOURCE,
+    type: contentScriptRpcResponseMessageName,
+    data: response,
   });
 }
 
@@ -49,9 +49,7 @@ export function makeSendPopupClosedUserRejectionMessage({
     code: RpcErrorCode.USER_REJECTION,
     message: 'User closed the wallet popup.',
   });
-  return () => {
-    chrome.tabs.sendMessage(tabId, message);
-  };
+  return () => sendRpcResponse(tabId, message);
 }
 
 /**

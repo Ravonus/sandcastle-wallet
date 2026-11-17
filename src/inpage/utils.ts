@@ -1,54 +1,74 @@
 import {
+  LEGACY_RESPONSE_CHANNEL,
   MESSAGE_SOURCE,
-  StacksLegacyMethods,
+  PAGE_APP_SOURCE,
+  PAGE_EXTENSION_SOURCE,
   type LegacyMessageToContentScript,
   type SatsConnectMessageToContentScript,
 } from '@common/types/message-types';
+import { nanoid } from 'nanoid';
 
-type CallableMethods = keyof typeof StacksLegacyMethods;
+export function waitForPageResponse<Result>(
+  channel: string,
+  dispatch: () => void,
+  match: (data: any) => Result | undefined,
+  timeoutMs = 10 * 60 * 1000,
+): Promise<Result> {
+  return new Promise((resolve, reject) => {
+    let timeout: number;
 
-interface ExtensionResponse {
-  source: 'xverse-extension';
-  method: CallableMethods;
+    function onMessage(event: MessageEvent) {
+      const { data } = event;
+      if (event.source !== window || event.origin !== window.location.origin) return;
+      if (data?.source !== PAGE_EXTENSION_SOURCE || data.channel !== channel) return;
+      const result = match(data.data);
+      if (result === undefined) return;
+      window.clearTimeout(timeout);
+      window.removeEventListener('message', onMessage);
+      resolve(result);
+    }
 
-  [key: string]: any;
+    timeout = window.setTimeout(() => {
+      window.removeEventListener('message', onMessage);
+      reject(new Error('Timed out waiting for Sandcastle Wallet'));
+    }, timeoutMs);
+    window.addEventListener('message', onMessage);
+    dispatch();
+  });
 }
 
-export const isValidLegacyEvent = (
-  event: MessageEvent,
-  method: SatsConnectMessageToContentScript['method'] | LegacyMessageToContentScript['method'],
-) => {
-  const { data } = event;
-  const correctSource = data.source === MESSAGE_SOURCE;
-  const correctMethod = data.method === method;
-  return correctSource && correctMethod && !!data.payload;
-};
+type LegacyResponse = LegacyMessageToContentScript | SatsConnectMessageToContentScript;
 
-export const callAndReceive = async (
-  methodName: CallableMethods | 'getURL',
-  opts: any = {},
-): Promise<ExtensionResponse> =>
-  new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      reject(new Error('Unable to get response from xverse extension'));
-    }, 1000);
-    const waitForResponse = (event: MessageEvent) => {
-      if (
-        event.data.source === 'xverse-extension' &&
-        event.data.method === `${methodName}Response`
-      ) {
-        clearTimeout(timeout);
-        window.removeEventListener('message', waitForResponse);
-        resolve(event.data);
+export function requestLegacy<Response extends LegacyResponse>(
+  event: CustomEvent,
+  method: Response['method'],
+  request: Partial<Response['payload']>,
+): Promise<Response['payload']> {
+  return waitForPageResponse(
+    LEGACY_RESPONSE_CHANNEL,
+    () => document.dispatchEvent(event),
+    (data) => {
+      if (data?.source !== MESSAGE_SOURCE || data.method !== method || !data.payload) {
+        return undefined;
       }
-    };
-    window.addEventListener('message', waitForResponse);
-    window.postMessage(
-      {
-        method: methodName,
-        source: 'xverse-app',
-        ...opts,
-      },
-      window.location.origin,
-    );
-  });
+      if (!Object.entries(request).every(([key, token]) => data.payload[key] === token)) {
+        return undefined;
+      }
+      return data.payload;
+    },
+  );
+}
+
+export function getExtensionUrl(): Promise<string> {
+  const id = nanoid();
+  return waitForPageResponse(
+    LEGACY_RESPONSE_CHANNEL,
+    () =>
+      window.postMessage({ source: PAGE_APP_SOURCE, method: 'getURL', id }, window.location.origin),
+    (data) =>
+      data?.method === 'getURLResponse' && data.id === id && typeof data.url === 'string'
+        ? data.url
+        : undefined,
+    1000,
+  );
+}

@@ -6,8 +6,6 @@ import {
   getAddressesRequestMessageSchema,
   getBalanceMethodName,
   getBalanceRequestMessageSchema,
-  getInfoMethodName,
-  getInfoRequestMessageSchema,
   sendTransferMethodName,
   sendTransferRequestMessageSchema,
   signMessageMethodName,
@@ -24,7 +22,6 @@ import {
   handleSignPsbt,
 } from '../btc';
 import { handleGetBalance } from '../btc/getBalance';
-import handleGetInfo from '../getInfo';
 import { requirePermissions, validateMessageSchema } from '../messageMiddlewares';
 import { getCurrentAccountResourceId } from './common';
 
@@ -41,7 +38,6 @@ export const router: Record<string, Handler> = {
     ],
     validateMessageSchema(getBalanceRequestMessageSchema, handleGetBalance),
   ),
-  [getInfoMethodName]: validateMessageSchema(getInfoRequestMessageSchema, handleGetInfo),
   [getAddressesMethodName]: requirePermissions(
     [
       () => ({

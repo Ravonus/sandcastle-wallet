@@ -1,5 +1,5 @@
 /* eslint-disable no-void */
-import { CONTENT_SCRIPT_PORT } from '@common/types/message-types';
+import { CONTENT_SCRIPT_PORT, MESSAGE_SOURCE } from '@common/types/message-types';
 import { handleLegacyExternalMethodFormat } from '@common/utils/legacy-external-message-handler';
 import internalBackgroundMessageHandler from '@common/utils/messageHandlers';
 import handleRPCRequest from '@common/utils/rpc';
@@ -11,6 +11,8 @@ chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== CONTENT_SCRIPT_PORT) return;
 
   async function onMessageListener(message: any, messagingPort: chrome.runtime.Port) {
+    if (message?.source !== MESSAGE_SOURCE) return;
+
     const parseResult = v.safeParse(rpcRequestMessageSchema, message);
 
     if (!parseResult.success) {

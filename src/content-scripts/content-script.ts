@@ -13,37 +13,36 @@ import {
 } from '@common/types/inpage-types';
 import {
   CONTENT_SCRIPT_PORT,
+  LEGACY_RESPONSE_CHANNEL,
   MESSAGE_SOURCE,
+  PAGE_APP_SOURCE,
+  PAGE_EXTENSION_SOURCE,
   SatsConnectMethods,
   StacksLegacyMethods,
   type LegacyMessageFromContentScript,
   type SatsConnectMessageFromContentScript,
 } from '@common/types/message-types';
-import getEventSourceWindow from '@common/utils/getEventSourceWindow';
-import { contentScriptWalletEventMessageSchema } from '@common/utils/messages/extensionToContentScript/schemas';
-
-import RequestsRoutes from '@common/utils/route-urls';
+import {
+  contentScriptRpcResponseMessageSchema,
+  contentScriptWalletEventMessageSchema,
+} from '@common/utils/messages/extensionToContentScript/schemas';
 import { walletEventName } from '@common/walletEvents';
-import { getIsPriorityWallet } from '@utils/chromeLocalStorage';
+import { rpcRequestMessageSchema } from '@sats-connect/core';
 import * as v from 'valibot';
 
-// Legacy messaging to work with older versions of Connect
+function postPageResponse(channel: string, data: unknown) {
+  window.postMessage({ source: PAGE_EXTENSION_SOURCE, channel, data }, window.location.origin);
+}
+
 window.addEventListener('message', (event) => {
   const { data } = event;
-  if (data.source === 'xverse-app') {
-    const { method } = data;
-    if (method === 'getURL') {
-      const url = chrome.runtime.getURL('options.html');
-      const source = getEventSourceWindow(event);
-      source?.postMessage(
-        {
-          url,
-          method: 'getURLResponse',
-          source: 'xverse-extension',
-        },
-        event.origin,
-      );
-    }
+  if (event.source !== window || event.origin !== window.location.origin) return;
+  if (data?.source === PAGE_APP_SOURCE && data.method === 'getURL' && typeof data.id === 'string') {
+    postPageResponse(LEGACY_RESPONSE_CHANNEL, {
+      id: data.id,
+      method: 'getURLResponse',
+      url: chrome.runtime.getURL('options.html'),
+    });
   }
 });
 
@@ -58,185 +57,127 @@ function connect() {
 
 connect();
 
-// Sends message to background script that an event has fired
-function sendMessageToBackground(
-  message: LegacyMessageFromContentScript | SatsConnectMessageFromContentScript,
-) {
-  backgroundPort.postMessage(message);
-}
-
-// Process messages received from the extension.
-chrome.runtime.onMessage.addListener((message: unknown) => {
-  if (v.is(contentScriptWalletEventMessageSchema, message)) {
-    window.dispatchEvent(
-      new CustomEvent(walletEventName, {
-        detail: message.data,
-      }),
-    );
-    return;
-  }
-
-  // Default to posting the message to `window` for unrecognized messages. Some
-  // functionality, such as RPC response messages, rely on the responses being
-  // posted to `window`.
-  //
-  // Ideally, all message types would be handled explicitly and warnings/errors
-  // would be logged when unrecognized messages are received.
-  window.postMessage(message, window.location.origin);
+const legacyResponseSchema = v.object({
+  source: v.literal(MESSAGE_SOURCE),
+  method: v.string(),
+  payload: v.record(v.string(), v.unknown()),
 });
 
-interface ForwardDomEventToBackgroundArgs {
-  payload: string;
-  method: LegacyMessageFromContentScript['method'] | SatsConnectMessageFromContentScript['method'];
-  urlParam: string;
-  path: RequestsRoutes;
-}
+chrome.runtime.onMessage.addListener((message: unknown) => {
+  if (v.is(contentScriptWalletEventMessageSchema, message)) {
+    window.dispatchEvent(new CustomEvent(walletEventName, { detail: message.data }));
+  } else if (v.is(contentScriptRpcResponseMessageSchema, message)) {
+    postPageResponse(message.type, message.data);
+  } else if (v.is(legacyResponseSchema, message) && message.method.endsWith('Response')) {
+    postPageResponse(LEGACY_RESPONSE_CHANNEL, message);
+  }
+});
 
-function forwardDomEventToBackground({ payload, method }: ForwardDomEventToBackgroundArgs) {
-  sendMessageToBackground({
-    method,
-    payload,
-    source: MESSAGE_SOURCE,
-  });
+function forwardDomEventToBackground(
+  method: LegacyMessageFromContentScript['method'] | SatsConnectMessageFromContentScript['method'],
+  payload: unknown,
+) {
+  if (typeof payload !== 'string') return;
+  backgroundPort.postMessage({ method, payload, source: MESSAGE_SOURCE });
 }
 
 // Listen for a CustomEvent (auth request) coming from the web app
 document.addEventListener(DomEventName.authenticationRequest, ((
   event: AuthenticationRequestEvent,
 ) => {
-  forwardDomEventToBackground({
-    path: RequestsRoutes.AuthenticationRequest,
-    payload: event.detail.authenticationRequest,
-    urlParam: 'authRequest',
-    method: StacksLegacyMethods.authenticationRequest,
-  });
+  forwardDomEventToBackground(
+    StacksLegacyMethods.authenticationRequest,
+    event.detail?.authenticationRequest,
+  );
 }) as EventListener);
 
 // Listen for a CustomEvent (transaction request) coming from the web app
 document.addEventListener(DomEventName.transactionRequest, ((event: TransactionRequestEvent) => {
-  forwardDomEventToBackground({
-    path: RequestsRoutes.TransactionRequest,
-    payload: event.detail.transactionRequest,
-    urlParam: 'request',
-    method: StacksLegacyMethods.transactionRequest,
-  });
+  forwardDomEventToBackground(
+    StacksLegacyMethods.transactionRequest,
+    event.detail?.transactionRequest,
+  );
 }) as EventListener);
 
 // Listen for a CustomEvent (signature request) coming from the web app
 document.addEventListener(DomEventName.signatureRequest, ((event: SignatureRequestEvent) => {
-  forwardDomEventToBackground({
-    path: RequestsRoutes.SignatureRequest,
-    payload: event.detail.signatureRequest,
-    urlParam: 'request',
-    method: StacksLegacyMethods.signatureRequest,
-  });
+  forwardDomEventToBackground(StacksLegacyMethods.signatureRequest, event.detail?.signatureRequest);
 }) as EventListener);
 
 // Listen for a CustomEvent (structured data signature request) coming from the web app
 document.addEventListener(DomEventName.structuredDataSignatureRequest, ((
   event: SignatureRequestEvent,
 ) => {
-  forwardDomEventToBackground({
-    path: RequestsRoutes.SignatureRequest,
-    payload: event.detail.signatureRequest,
-    urlParam: 'request',
-    method: StacksLegacyMethods.structuredDataSignatureRequest,
-  });
+  forwardDomEventToBackground(
+    StacksLegacyMethods.structuredDataSignatureRequest,
+    event.detail?.signatureRequest,
+  );
 }) as EventListener);
 
 // Listen for a CustomEvent (BTC Address request) coming from the web app
 document.addEventListener(DomEventName.getAddressRequest, ((event: GetAddressRequestEvent) => {
-  forwardDomEventToBackground({
-    path: RequestsRoutes.AddressRequest,
-    payload: event.detail.btcAddressRequest,
-    urlParam: 'addressRequest',
-    method: SatsConnectMethods.getAddressRequest,
-  });
+  forwardDomEventToBackground(
+    SatsConnectMethods.getAddressRequest,
+    event.detail?.btcAddressRequest,
+  );
 }) as EventListener);
 
 // Listen for a CustomEvent (PSBT Signing request) coming from the web app
 document.addEventListener(DomEventName.signPsbtRequest, ((event: SignPsbtRequestEvent) => {
-  forwardDomEventToBackground({
-    path: RequestsRoutes.SignBtcTx,
-    payload: event.detail.signPsbtRequest,
-    urlParam: 'signPsbtRequest',
-    method: SatsConnectMethods.signPsbtRequest,
-  });
+  forwardDomEventToBackground(SatsConnectMethods.signPsbtRequest, event.detail?.signPsbtRequest);
 }) as EventListener);
 
 // Listen for a CustomEvent (Batch PSBT Signing request) coming from the web app
 document.addEventListener(DomEventName.signBatchPsbtRequest, ((
   event: SignBatchPsbtRequestEvent,
 ) => {
-  forwardDomEventToBackground({
-    path: RequestsRoutes.SignBatchBtcTx,
-    payload: event.detail.signBatchPsbtRequest,
-    urlParam: 'signBatchPsbtRequest',
-    method: SatsConnectMethods.signBatchPsbtRequest,
-  });
+  forwardDomEventToBackground(
+    SatsConnectMethods.signBatchPsbtRequest,
+    event.detail?.signBatchPsbtRequest,
+  );
 }) as EventListener);
 
 // Listen for a CustomEvent (Message Signing request) coming from the web app
 document.addEventListener(DomEventName.signMessageRequest, ((event: SignMessageRequestEvent) => {
-  forwardDomEventToBackground({
-    path: RequestsRoutes.SignMessageRequest,
-    payload: event.detail.signMessageRequest,
-    urlParam: 'signMessageRequest',
-    method: SatsConnectMethods.signMessageRequest,
-  });
+  forwardDomEventToBackground(
+    SatsConnectMethods.signMessageRequest,
+    event.detail?.signMessageRequest,
+  );
 }) as EventListener);
 
 // Listen for a CustomEvent (Send BTC request) coming from the web app
 document.addEventListener(DomEventName.sendBtcRequest, ((event: SendBtcRequestEvent) => {
-  forwardDomEventToBackground({
-    path: RequestsRoutes.SendBtcTx,
-    payload: event.detail.sendBtcRequest,
-    urlParam: 'sendBtcRequest',
-    method: SatsConnectMethods.sendBtcRequest,
-  });
+  forwardDomEventToBackground(SatsConnectMethods.sendBtcRequest, event.detail?.sendBtcRequest);
 }) as EventListener);
 
 // Listen for a CustomEvent (Create Text Inscription Request) coming from the web app
 document.addEventListener(DomEventName.createInscriptionRequest, ((
   event: CreateInscriptionEvent,
 ) => {
-  forwardDomEventToBackground({
-    path: RequestsRoutes.CreateInscription,
-    payload: event.detail.createInscriptionRequest,
-    urlParam: 'createInscriptionRequest',
-    method: SatsConnectMethods.createInscriptionRequest,
-  });
+  forwardDomEventToBackground(
+    SatsConnectMethods.createInscriptionRequest,
+    event.detail?.createInscriptionRequest,
+  );
 }) as EventListener);
 
 // Listen for a CustomEvent (Create Repeat Inscriptions Request) coming from the web app
 document.addEventListener(DomEventName.createRepeatInscriptionsRequest, ((
   event: CreateRepeatInscriptionsEvent,
 ) => {
-  forwardDomEventToBackground({
-    path: RequestsRoutes.CreateRepeatInscriptions,
-    payload: event.detail.createRepeatInscriptionsRequest,
-    urlParam: 'createRepeatInscriptionsRequest',
-    method: SatsConnectMethods.createRepeatInscriptionsRequest,
-  });
+  forwardDomEventToBackground(
+    SatsConnectMethods.createRepeatInscriptionsRequest,
+    event.detail?.createRepeatInscriptionsRequest,
+  );
 }) as EventListener);
 
-document.addEventListener(DomEventName.rpcRequest, (event: any) => {
-  sendMessageToBackground({ source: MESSAGE_SOURCE, ...event.detail });
+document.addEventListener(DomEventName.rpcRequest, (event) => {
+  const request = v.safeParse(rpcRequestMessageSchema, (event as CustomEvent<unknown>).detail);
+  if (request.success) {
+    backgroundPort.postMessage({ ...request.output, source: MESSAGE_SOURCE });
+  }
 });
 
-// Inject in-page script (Stacks and Bitcoin Providers)
-const injectInPageScript = (isPriority) => {
-  const inpage = document.createElement('script');
-  inpage.src = chrome.runtime.getURL('inpage.js');
-  inpage.id = 'xverse-wallet-provider';
-  inpage.setAttribute('data-is-priority', isPriority ? 'true' : '');
-  document.head.appendChild(inpage);
-};
-
-getIsPriorityWallet()
-  .then((isPriorityWallet) => {
-    injectInPageScript(isPriorityWallet);
-  })
-  .catch(() => {
-    injectInPageScript(false);
-  });
+const inpage = document.createElement('script');
+inpage.src = chrome.runtime.getURL('inpage.js');
+inpage.id = 'sandcastle-wallet-provider';
+(document.head || document.documentElement).appendChild(inpage);

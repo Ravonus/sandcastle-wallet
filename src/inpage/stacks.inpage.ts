@@ -11,15 +11,12 @@ import {
   type TransactionResponseMessage,
 } from '@common/types/message-types';
 import type { StacksProvider } from '@stacks/connect';
-import { callAndReceive, isValidLegacyEvent } from './utils';
+import { getExtensionUrl, requestLegacy } from './utils';
 
 declare const VERSION: string;
 
 const StacksMethodsProvider: Partial<StacksProvider> = {
-  getURL: async () => {
-    const { url } = await callAndReceive('getURL');
-    return url;
-  },
+  getURL: getExtensionUrl,
   structuredDataSignatureRequest: async (signatureRequest) => {
     const event = new CustomEvent<SignatureRequestEventDetails>(
       DomEventName.structuredDataSignatureRequest,
@@ -27,43 +24,27 @@ const StacksMethodsProvider: Partial<StacksProvider> = {
         detail: { signatureRequest },
       },
     );
-    document.dispatchEvent(event);
-    return new Promise((resolve, reject) => {
-      const handleMessage = (eventMessage: MessageEvent<SignatureResponseMessage>) => {
-        if (!isValidLegacyEvent(eventMessage, StacksLegacyMethods.signatureResponse)) return;
-        if (eventMessage.data.payload?.signatureRequest !== signatureRequest) return;
-        window.removeEventListener('message', handleMessage);
-        if (eventMessage.data.payload.signatureResponse === 'cancel') {
-          reject(eventMessage.data.payload.signatureResponse);
-          return;
-        }
-        if (typeof eventMessage.data.payload.signatureResponse !== 'string') {
-          resolve(eventMessage.data.payload.signatureResponse);
-        }
-      };
-      window.addEventListener('message', handleMessage);
-    });
+    const { signatureResponse } = await requestLegacy<SignatureResponseMessage>(
+      event,
+      StacksLegacyMethods.signatureResponse,
+      { signatureRequest },
+    );
+    if (signatureResponse === 'cancel') return Promise.reject(signatureResponse);
+    if (typeof signatureResponse === 'string') throw new Error('Invalid wallet response');
+    return signatureResponse;
   },
   signatureRequest: async (signatureRequest) => {
     const event = new CustomEvent<SignatureRequestEventDetails>(DomEventName.signatureRequest, {
       detail: { signatureRequest },
     });
-    document.dispatchEvent(event);
-    return new Promise((resolve, reject) => {
-      const handleMessage = (eventMessage: MessageEvent<SignatureResponseMessage>) => {
-        if (!isValidLegacyEvent(eventMessage, StacksLegacyMethods.signatureResponse)) return;
-        if (eventMessage.data.payload?.signatureRequest !== signatureRequest) return;
-        window.removeEventListener('message', handleMessage);
-        if (eventMessage.data.payload.signatureResponse === 'cancel') {
-          reject(eventMessage.data.payload.signatureResponse);
-          return;
-        }
-        if (typeof eventMessage.data.payload.signatureResponse !== 'string') {
-          resolve(eventMessage.data.payload.signatureResponse);
-        }
-      };
-      window.addEventListener('message', handleMessage);
-    });
+    const { signatureResponse } = await requestLegacy<SignatureResponseMessage>(
+      event,
+      StacksLegacyMethods.signatureResponse,
+      { signatureRequest },
+    );
+    if (signatureResponse === 'cancel') return Promise.reject(signatureResponse);
+    if (typeof signatureResponse === 'string') throw new Error('Invalid wallet response');
+    return signatureResponse;
   },
   authenticationRequest: async (authenticationRequest) => {
     const event = new CustomEvent<AuthenticationRequestEventDetails>(
@@ -72,46 +53,32 @@ const StacksMethodsProvider: Partial<StacksProvider> = {
         detail: { authenticationRequest },
       },
     );
-    document.dispatchEvent(event);
-    return new Promise((resolve, reject) => {
-      const handleMessage = (eventMessage: MessageEvent<AuthenticationResponseMessage>) => {
-        if (!isValidLegacyEvent(eventMessage, StacksLegacyMethods.authenticationResponse)) return;
-        if (eventMessage.data.payload?.authenticationRequest !== authenticationRequest) return;
-        window.removeEventListener('message', handleMessage);
-        if (eventMessage.data.payload.authenticationResponse === 'cancel') {
-          reject(eventMessage.data.payload.authenticationResponse);
-          return;
-        }
-        resolve(eventMessage.data.payload.authenticationResponse);
-      };
-      window.addEventListener('message', handleMessage);
-    });
+    const { authenticationResponse } = await requestLegacy<AuthenticationResponseMessage>(
+      event,
+      StacksLegacyMethods.authenticationResponse,
+      { authenticationRequest },
+    );
+    if (authenticationResponse === 'cancel') return Promise.reject(authenticationResponse);
+    if (typeof authenticationResponse !== 'string') throw new Error('Invalid wallet response');
+    return authenticationResponse;
   },
   transactionRequest: async (transactionRequest) => {
     const event = new CustomEvent<TransactionRequestEventDetails>(DomEventName.transactionRequest, {
       detail: { transactionRequest },
     });
-    document.dispatchEvent(event);
-    return new Promise((resolve, reject) => {
-      const handleMessage = (eventMessage: MessageEvent<TransactionResponseMessage>) => {
-        if (!isValidLegacyEvent(eventMessage, StacksLegacyMethods.transactionResponse)) return;
-        if (eventMessage.data.payload?.transactionRequest !== transactionRequest) return;
-        window.removeEventListener('message', handleMessage);
-        if (eventMessage.data.payload.transactionResponse === 'cancel') {
-          reject(eventMessage.data.payload.transactionResponse);
-          return;
-        }
-        if (typeof eventMessage.data.payload.transactionResponse !== 'string') {
-          resolve(eventMessage.data.payload.transactionResponse);
-        }
-      };
-      window.addEventListener('message', handleMessage);
-    });
+    const { transactionResponse } = await requestLegacy<TransactionResponseMessage>(
+      event,
+      StacksLegacyMethods.transactionResponse,
+      { transactionRequest },
+    );
+    if (transactionResponse === 'cancel') return Promise.reject(transactionResponse);
+    if (typeof transactionResponse === 'string') throw new Error('Invalid wallet response');
+    return transactionResponse;
   },
   getProductInfo() {
     return {
       version: VERSION,
-      name: 'Xverse Wallet',
+      name: 'Sandcastle Wallet',
     };
   },
   request(): Promise<Record<string, any>> {
