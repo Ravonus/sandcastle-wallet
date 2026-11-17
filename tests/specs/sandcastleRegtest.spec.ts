@@ -132,9 +132,14 @@ test('Regtest restores locally, renders an inscription and approves marketplace 
     await wallet.getByRole('button', { name: 'Save anyway', exact: true }).click();
     await expect(wallet).toHaveURL(/#\/settings$/);
     await wallet.getByText('Network', { exact: true }).click();
-    await bitcoinField.fill(`${fixture.url}/api`);
-    await ordField.fill(fixture.url);
+    await bitcoinField.fill(`${fixture.url.slice('http://'.length)}/api/`);
+    await ordField.fill(`${fixture.url}/`);
     await wallet.getByRole('checkbox', { name: 'Expose local regtest test connector' }).check();
+    await wallet.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(wallet).toHaveURL(/#\/settings$/);
+    await wallet.getByText('Network', { exact: true }).click();
+    await expect(bitcoinField).toHaveValue(`${fixture.url}/api`);
+    await expect(ordField).toHaveValue(fixture.url);
     await wallet.getByRole('button', { name: 'Save', exact: true }).click();
     await expect(wallet).toHaveURL(/#\/settings$/);
     await wallet.getByTestId('nav-dashboard').click();
