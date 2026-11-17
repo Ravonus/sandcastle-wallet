@@ -1,5 +1,5 @@
 /* eslint-disable no-underscore-dangle */
-import { defaultMainnet, type SettingsNetwork } from '@secretkeylabs/xverse-core';
+import { defaultMainnet, defaultRegtest, type SettingsNetwork } from '@secretkeylabs/xverse-core';
 import { markAlertsForShow } from '@utils/alertTracker';
 import chromeStorage from '@utils/chromeStorage';
 import { applyMiddleware, combineReducers, createStore } from 'redux';
@@ -18,6 +18,7 @@ import type {
   WalletStateV6,
   WalletStateV7,
   WalletStateV8,
+  WalletStateV9,
 } from './wallet/actions/migrationTypes';
 import { type AvatarInfo, type WalletState } from './wallet/actions/types';
 import walletReducer, { initialWalletState, rehydrateError } from './wallet/reducer';
@@ -38,7 +39,7 @@ const migrations = {
       ...state,
       network: {
         ...state.network,
-        fallbackBtcApiUrl: initialWalletState.network.fallbackBtcApiUrl,
+        fallbackBtcApiUrl: defaultMainnet.fallbackBtcApiUrl,
       },
     };
   },
@@ -191,12 +192,41 @@ const migrations = {
           : state.network) ?? initialWalletState.network,
     };
   },
-  9: (state: WalletStateV8): WalletState => {
+  9: (state: WalletStateV8): WalletStateV9 => {
     const { showBtcReceiveAlert, showOrdinalReceiveAlert, ...migratedState } = state;
 
     return {
       ...migratedState,
       keystoneAccountsList: [],
+    } as WalletStateV9;
+  },
+  10: (state: WalletStateV9): WalletState => {
+    const legacyBitcoinUrl = 'https://beta.sbtc-mempool.tech/api/proxy';
+    const migrateNetwork = (network: SettingsNetwork): SettingsNetwork =>
+      network.type === 'Regtest'
+        ? {
+            ...network,
+            address: '',
+            btcApiUrl: network.btcApiUrl === legacyBitcoinUrl ? '' : network.btcApiUrl ?? '',
+            fallbackBtcApiUrl: '',
+            ordApiUrl: network.ordApiUrl ?? '',
+          }
+        : network;
+    const network = migrateNetwork(state.network);
+    const savedNetworks = (state.savedNetworks ?? initialWalletState.savedNetworks).map(
+      migrateNetwork,
+    );
+    if (!savedNetworks.some((saved) => saved.type === 'Regtest')) {
+      savedNetworks.push(network.type === 'Regtest' ? network : defaultRegtest);
+    }
+    return {
+      ...state,
+      network,
+      savedNetworks,
+      exposeLocalRegtestConnector: false,
+      ...(network.type === 'Regtest' && state.selectedAccountType !== 'software'
+        ? { selectedAccountType: 'software', selectedAccountIndex: state.accountsList[0]?.id ?? 0 }
+        : {}),
     };
   },
 
@@ -229,7 +259,7 @@ const migrations = {
 };
 
 const WalletPersistConfig: PersistConfig<WalletState> = {
-  version: 9,
+  version: 10,
   key: 'walletState',
   storage: chromeStorage.local,
   migrate: createMigrate(migrations as any, { debug: false }),

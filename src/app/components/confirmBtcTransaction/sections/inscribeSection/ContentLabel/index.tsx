@@ -171,7 +171,7 @@ function ContentIcon({
   const contentType = getContentType(inputContentType);
 
   const canShowPreview = isPreviewable(contentType);
-  const canPreviewInOrd = isOrdiPreviewable(contentType);
+  const canPreviewInOrd = network.type !== 'Regtest' && isOrdiPreviewable(contentType);
 
   const showPreviewButton = canShowPreview && !canPreviewInOrd;
   const showOrdButton = !canShowPreview && canPreviewInOrd;
@@ -194,7 +194,7 @@ function ContentIcon({
 
     const displayContent = type === 'PLAIN_TEXT' ? content : atob(content);
 
-    if (canPreviewInOrd) {
+    if (network.type !== 'Regtest' && canPreviewInOrd) {
       const { data: previewId } = await axios.post(
         `${XVERSE_ORDIVIEW_URL(network.type)}/previewHtml`,
         {

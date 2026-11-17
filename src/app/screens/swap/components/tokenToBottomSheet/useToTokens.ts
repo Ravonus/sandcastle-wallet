@@ -24,7 +24,7 @@ const useToTokens = (protocol: Protocol, from?: TokenBasic, query?: string) => {
   const search = query?.trim().replace(/\s+/g, ' ').replace(/ /g, '•') ?? '';
 
   const queryFn = async () => {
-    const response = await getXverseApiClient(network.type).swaps.getDestinationTokens({
+    const response = await getXverseApiClient(network).swaps.getDestinationTokens({
       protocol,
       from,
       search,

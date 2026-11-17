@@ -311,7 +311,7 @@ export default function CoinHeader({ currency, fungibleToken }: Props) {
             onPress={() => navigate(`/list-rune/${fungibleToken.principal}`)}
           />
         )}
-        {!fungibleToken && (
+        {network.type !== 'Regtest' && !fungibleToken && (
           <SquareButton src={Buy} text={t('BUY')} onPress={() => navigate(`/buy/${currency}`)} />
         )}
       </RowButtonContainer>

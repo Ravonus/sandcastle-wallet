@@ -119,7 +119,7 @@ function CreateInscription() {
   }, [btcAddress, requestedNetwork]);
 
   useEffect(() => {
-    fetchBtcFeeRate(network.type).then((feeRatesResponse: BtcFeeResponse) => {
+    fetchBtcFeeRate(network).then((feeRatesResponse: BtcFeeResponse) => {
       setFeeRates(feeRatesResponse);
       if (suggestedMinerFeeRate === undefined) {
         setFeeRate(feeRatesResponse.regular);

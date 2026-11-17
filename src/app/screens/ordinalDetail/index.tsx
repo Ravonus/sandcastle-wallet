@@ -235,6 +235,7 @@ function OrdinalDetailScreen() {
   }, [dispatch, ordinalsAddress, optionsDialogT, optionsSheet]);
 
   const handleRefreshThumbnail = useCallback(() => {
+    if (network.type === 'Regtest') return;
     setRefreshingThumbnail(true);
 
     const cacheBustPromise = fetch(
@@ -313,6 +314,9 @@ function OrdinalDetailScreen() {
       )}
 
       <CollectibleDetailTile title={t('ID')} value={ordinal?.id!} />
+      {network.type === 'Regtest' && ordinal?.output && (
+        <CollectibleDetailTile title={t('REGTEST_OUTPUT')} value={ordinal.output} />
+      )}
       <CollectibleDetailTile title={t('ADDRESS')} value={ordinal?.address!} />
       <DetailSection isGallery={isGalleryOpen}>
         {ordinal?.value && (
@@ -628,7 +632,7 @@ function OrdinalDetailScreen() {
                 onClick={handleHideStandaloneInscription}
               />
             ))}
-          {canRefreshInscription && (
+          {network.type !== 'Regtest' && canRefreshInscription && (
             <StyledButton
               variant="tertiary"
               icon={<ArrowCounterClockwise size={24} color={Theme.colors.white_200} />}

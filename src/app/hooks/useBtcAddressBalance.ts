@@ -1,28 +1,26 @@
 import { useQuery } from '@tanstack/react-query';
-import BigNumber from 'bignumber.js';
 import useBtcClient from './apiClients/useBtcClient';
+import useWalletSelector from './useWalletSelector';
 
 export default function useBtcAddressBalance(address: string) {
   const btcClient = useBtcClient();
+  const { network } = useWalletSelector();
 
   const fetchBalance = async () => {
-    if (!address) {
+    if (!address || (network.type === 'Regtest' && !network.btcApiUrl)) {
       return null;
     }
 
-    const addressData = await btcClient.getAddressData(address);
-    const confirmedBalance = BigNumber(addressData.chain_stats.funded_txo_sum)
-      .minus(addressData.chain_stats.spent_txo_sum)
-      .toNumber();
-    const unconfirmedBalance = BigNumber(addressData.mempool_stats.funded_txo_sum)
-      .minus(addressData.mempool_stats.spent_txo_sum)
-      .toNumber();
-
-    return { address, confirmedBalance, unconfirmedBalance };
+    const balance = await btcClient.getBalance(address);
+    return {
+      address,
+      confirmedBalance: balance.finalBalance,
+      unconfirmedBalance: balance.unconfirmedBalance,
+    };
   };
 
   return useQuery({
-    queryKey: ['btc-address-balance', address],
+    queryKey: ['btc-address-balance', address, network],
     queryFn: fetchBalance,
     staleTime: 10 * 1000, // 10 secs
     keepPreviousData: true,

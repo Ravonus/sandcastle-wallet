@@ -50,6 +50,8 @@ const useAccountBalance = () => {
       return;
     }
 
+    if (network.type === 'Regtest' && !network.btcApiUrl) return;
+
     let btcBalance = '0';
     let stxBalance = '0';
     let finalSipCoinsList: FungibleTokenWithStates[] = [];
@@ -70,6 +72,11 @@ const useAccountBalance = () => {
         getBtcBalance(account.btcAddresses.nested?.address),
       ]);
       btcBalance = BigNumber(nativeBalance).plus(nestedBalance).toString();
+
+      if (network.type === 'Regtest') {
+        dispatch(setAccountBalanceAction(getAccountBalanceKey(account), btcBalance));
+        return btcBalance;
+      }
 
       if (account.btcAddresses.taproot.address) {
         const fetchBrc20Balances = fetchBrc20FungibleTokens(

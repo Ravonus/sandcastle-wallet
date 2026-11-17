@@ -8,6 +8,8 @@ const useOrdinalsByAddress = (address: string) => {
   const btcClient = useBtcClient();
 
   const fetchOrdinals = async (): Promise<BtcOrdinal[]> => {
+    if (!address || (network.type === 'Regtest' && (!network.btcApiUrl || !network.ordApiUrl)))
+      return [];
     const ordinals = await getOrdinalsByAddress(btcClient, network.type, address);
     return ordinals.filter((item) => item.id !== undefined);
   };
@@ -17,7 +19,7 @@ const useOrdinalsByAddress = (address: string) => {
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: [`ordinals-${address}`],
+    queryKey: ['ordinals', network, address],
     queryFn: fetchOrdinals,
   });
 

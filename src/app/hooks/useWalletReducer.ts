@@ -6,6 +6,7 @@ import useNetworkSelector from '@hooks/useNetwork';
 import useWalletSelector from '@hooks/useWalletSelector';
 import {
   AnalyticsEvents,
+  BitcoinEsploraApiProvider,
   createWalletAccount,
   decryptSeedPhraseCBC,
   getAccountFromSeedPhrase,
@@ -45,7 +46,6 @@ import {
 } from '@utils/mixpanel';
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import useBtcClient from './apiClients/useBtcClient';
 import useSeedVault from './useSeedVault';
 import useWalletSession from './useWalletSession';
 
@@ -62,7 +62,8 @@ const createSingleAccount = async (
     network: btcNetwork,
   });
   account.accountName = savedNames.find((name) => name.id === accountIndex)?.name;
-  account.bnsName = await getBnsName(account.stxAddress, stacksNetwork);
+  if (btcNetwork !== 'Regtest')
+    account.bnsName = await getBnsName(account.stxAddress, stacksNetwork);
 
   return account;
 };
@@ -89,7 +90,6 @@ const useWalletReducer = () => {
     ledgerAccountsList,
     keystoneAccountsList,
   });
-  const btcClient = useBtcClient();
 
   const dispatch = useDispatch();
   const { setSessionStartTime, clearSessionTime, setSessionStartTimeAndMigrate } =
@@ -165,7 +165,7 @@ const useWalletReducer = () => {
     const savedCustomAccountNames = savedNames[currentNetwork.type];
 
     const walletAccountsGenerator = restoreWalletWithAccounts(
-      btcClient,
+      BitcoinEsploraApiProvider.fromSettings(currentNetwork),
       secretKey,
       currentNetwork,
       currentStacksNetwork,
@@ -424,6 +424,10 @@ const useWalletReducer = () => {
 
   const switchAccount = useCallback(
     async (nextAccount: Account) => {
+      if (network.type === 'Regtest' && nextAccount.accountType !== 'software') {
+        throw new Error('Regtest requires a software account.');
+      }
+
       // we clear the query cache to prevent data from the other account potentially being displayed
       await queryClient.cancelQueries();
       queryClient.clear();
@@ -462,7 +466,7 @@ const useWalletReducer = () => {
     [dispatch, ensureSelectedAccountValid, network.type, queryClient, currentlySelectedAccount],
   );
 
-  const changeNetwork = async (changedNetwork: SettingsNetwork) => {
+  const changeNetwork = async (changedNetwork: SettingsNetwork, exposeConnector?: boolean) => {
     // Save current custom account names
     const currentNetworkType = network.type;
     const customAccountNames = softwareAccountsList.map((account) => ({
@@ -471,11 +475,31 @@ const useWalletReducer = () => {
     }));
     dispatch(updateSavedNamesAction(currentNetworkType, customAccountNames));
 
+    let nextAccounts = softwareAccountsList;
+    if (network.type !== changedNetwork.type) {
+      const seedPhrase = await seedVault.getSeed();
+      const changedStacksNetwork: StacksNetwork = {
+        ...(changedNetwork.type === 'Mainnet' ? StacksMainnet : StacksTestnet),
+        client: { baseUrl: changedNetwork.address },
+      };
+      nextAccounts = await Promise.all(
+        softwareAccountsList.map(({ id }) =>
+          createSingleAccount(
+            seedPhrase,
+            id,
+            changedNetwork.type,
+            changedStacksNetwork,
+            savedNames[changedNetwork.type],
+          ),
+        ),
+      );
+    }
+
     // we clear the query cache to prevent data from the other account potentially being displayed
     await queryClient.cancelQueries();
     queryClient.clear();
 
-    dispatch(ChangeNetworkAction(changedNetwork));
+    dispatch(ChangeNetworkAction(changedNetwork, nextAccounts, exposeConnector));
 
     if (currentlySelectedAccount) {
       dispatchEventAuthorizedConnectedClients(
@@ -499,40 +523,6 @@ const useWalletReducer = () => {
         },
       );
     }
-
-    const seedPhrase = await seedVault.getSeed();
-    const changedStacksNetwork: StacksNetwork =
-      changedNetwork.type === 'Mainnet'
-        ? {
-            ...StacksMainnet,
-            client: {
-              baseUrl: changedNetwork.address,
-            },
-          }
-        : {
-            ...StacksTestnet,
-            client: {
-              baseUrl: changedNetwork.address,
-            },
-          };
-
-    const nextAccounts: Account[] = [];
-
-    // we recreate the same number of accounts on the new network
-    for (let i = 0; i < softwareAccountsList.length; i++) {
-      const account = await createSingleAccount(
-        seedPhrase,
-        i,
-        changedNetwork.type,
-        changedStacksNetwork,
-        savedNames[changedNetwork.type],
-      );
-      nextAccounts.push(account);
-    }
-
-    await loadActiveAccounts(seedPhrase, changedNetwork, changedStacksNetwork, nextAccounts, {
-      resetIndex: true,
-    });
   };
 
   const addLedgerAccount = async (ledgerAccount: Account) => {

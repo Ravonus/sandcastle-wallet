@@ -1,3 +1,4 @@
+import { normalizeRegtestEndpoint, validateRegtestEndpoints } from '@common/utils/regtestEndpoints';
 import BottomBar from '@components/tabBar';
 import TopRow from '@components/topRow';
 import useWalletReducer from '@hooks/useWalletReducer';
@@ -51,11 +52,20 @@ const NodeInputsContainer = styled.div`
   margin-top: ${(props) => props.theme.space.s};
 `;
 
-type NodeInputKey = keyof Pick<SettingsNetwork, 'address' | 'btcApiUrl' | 'fallbackBtcApiUrl'>;
-const nodeInputs: { key: NodeInputKey; labelKey: string }[] = [
+type NodeInputKey = keyof Pick<
+  SettingsNetwork,
+  'address' | 'btcApiUrl' | 'fallbackBtcApiUrl' | 'ordApiUrl'
+>;
+type NodeField = { key: NodeInputKey; labelKey: string; placeholder?: string };
+const nodeInputs: NodeField[] = [
   { key: 'address', labelKey: 'STACKS_URL' },
   { key: 'btcApiUrl', labelKey: 'BTC_URL' },
   { key: 'fallbackBtcApiUrl', labelKey: 'FALLBACK_BTC_URL' },
+];
+
+const regtestInputs: NodeField[] = [
+  { key: 'btcApiUrl', labelKey: 'REGTEST_BTC_URL', placeholder: 'http://localhost:3002/api' },
+  { key: 'ordApiUrl', labelKey: 'REGTEST_ORD_URL', placeholder: 'http://localhost:80' },
 ];
 
 type NodeInputErrors = Record<NodeInputKey, string>;
@@ -63,16 +73,21 @@ const initialNodeErrors: NodeInputErrors = {
   address: '',
   btcApiUrl: '',
   fallbackBtcApiUrl: '',
+  ordApiUrl: '',
 };
 
 function ChangeNetworkScreen() {
   const { t } = useTranslation('translation', { keyPrefix: 'SETTING_SCREEN' });
   const navigate = useNavigate();
   const { changeNetwork } = useWalletReducer();
-  const { network, savedNetworks } = useWalletSelector();
+  const { network, savedNetworks, exposeLocalRegtestConnector } = useWalletSelector();
   const [isChangingNetwork, setIsChangingNetwork] = useState(false);
   const [formErrors, setFormErrors] = useState<NodeInputErrors>(initialNodeErrors);
   const [formInputs, setFormInputs] = useState<SettingsNetwork>(network);
+  const [exposeConnector, setExposeConnector] = useState(exposeLocalRegtestConnector);
+  const [canSaveAnyway, setCanSaveAnyway] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const isRegtest = formInputs.type === 'Regtest';
 
   const handleBackButtonClick = () => {
     navigate('/settings');
@@ -82,12 +97,14 @@ function ChangeNetworkScreen() {
     if (networkSelected.type === formInputs.type) {
       return;
     }
+    setCanSaveAnyway(false);
     setFormInputs(networkSelected);
     setFormErrors(initialNodeErrors);
   };
 
   // TODO should validate required fields on change
   const onChangeCreator = (key: NodeInputKey) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCanSaveAnyway(false);
     setFormErrors((prevErrors) => ({
       ...prevErrors,
       [key]: '',
@@ -99,6 +116,7 @@ function ChangeNetworkScreen() {
   };
 
   const onClearCreator = (key: NodeInputKey) => () => {
+    setCanSaveAnyway(false);
     setFormErrors((prevErrors) => ({
       ...prevErrors,
       [key]: '',
@@ -110,6 +128,7 @@ function ChangeNetworkScreen() {
   };
 
   const onResetCreator = (key: NodeInputKey) => () => {
+    setCanSaveAnyway(false);
     setFormErrors((prevErrors) => ({
       ...prevErrors,
       [key]: '',
@@ -122,6 +141,38 @@ function ChangeNetworkScreen() {
 
   const onSubmit = async () => {
     setIsChangingNetwork(true);
+    setSaveError('');
+    if (isRegtest) {
+      const settings = {
+        ...formInputs,
+        address: '',
+        fallbackBtcApiUrl: '',
+        btcApiUrl: normalizeRegtestEndpoint(formInputs.btcApiUrl),
+        ordApiUrl: normalizeRegtestEndpoint(formInputs.ordApiUrl ?? ''),
+      };
+
+      try {
+        if (!canSaveAnyway) {
+          const { bitcoin, ord } = await validateRegtestEndpoints(settings);
+          setFormErrors({
+            ...initialNodeErrors,
+            btcApiUrl: bitcoin ? '' : t(settings.btcApiUrl ? 'INVALID_URL' : 'REQUIRED'),
+            ordApiUrl: ord ? '' : t(settings.ordApiUrl ? 'INVALID_URL' : 'REQUIRED'),
+          });
+          if (!bitcoin || !ord) {
+            setCanSaveAnyway(true);
+            return;
+          }
+        }
+        await changeNetwork(settings, exposeConnector);
+        navigate('/settings');
+      } catch {
+        setSaveError(t('NETWORK_SAVE_FAILED'));
+      } finally {
+        setIsChangingNetwork(false);
+      }
+      return;
+    }
 
     // TODO use formik/yup for all validation if form gets more complex
     // validate required fields
@@ -163,6 +214,7 @@ function ChangeNetworkScreen() {
       setFormErrors({
         address: !isValidStacksUrl ? t('INVALID_URL') : '',
         btcApiUrl: !isValidBtcApiUrl ? t('INVALID_URL') : '',
+        ordApiUrl: '',
         fallbackBtcApiUrl: !isValidFallbackBtcApiUrl ? t('INVALID_URL') : '',
       });
       setIsChangingNetwork(false);
@@ -216,23 +268,36 @@ function ChangeNetworkScreen() {
           showDivider={false}
         />
         <NodeInputsContainer>
-          {nodeInputs.map(({ key, labelKey }) => (
+          {(isRegtest ? regtestInputs : nodeInputs).map(({ key, labelKey, placeholder }) => (
             <NodeInput
               key={key}
               label={t(labelKey)}
               onChange={onChangeCreator(key)}
-              value={formInputs[key]}
+              placeholder={placeholder}
+              value={formInputs[key] ?? ''}
               onClear={onClearCreator(key)}
               onReset={onResetCreator(key)}
               error={formErrors[key]}
               disabled={isChangingNetwork}
             />
           ))}
+          {isRegtest && (
+            <label>
+              <input
+                type="checkbox"
+                checked={exposeConnector}
+                disabled={isChangingNetwork}
+                onChange={(event) => setExposeConnector(event.target.checked)}
+              />{' '}
+              {t('REGTEST_CONNECTOR')}
+            </label>
+          )}
+          {saveError && <p role="alert">{saveError}</p>}
         </NodeInputsContainer>
       </Container>
       <ButtonContainer>
         <Button
-          title={t('SAVE')}
+          title={t(canSaveAnyway ? 'SAVE_ANYWAY' : 'SAVE')}
           onClick={onSubmit}
           loading={isChangingNetwork}
           disabled={isChangingNetwork}

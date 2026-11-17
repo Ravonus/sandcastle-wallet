@@ -65,7 +65,7 @@ function SendOrdinalScreen() {
     if (!feeRate && btcFeeRate && !feeRatesLoading) {
       setFeeRate(btcFeeRate.regular.toString());
     }
-  }, [btcFeeRate, feeRatesLoading]);
+  }, [btcFeeRate, feeRatesLoading, feeRate, isRareSat, selectedOrdinal]);
 
   useCancellableEffect(
     async (isEffectActive) => {
@@ -166,7 +166,7 @@ function SendOrdinalScreen() {
       setIsSubmitting(true);
       const txnId = await transaction?.broadcast({
         ...options,
-        rbfEnabled: true,
+        rbfEnabled: context.network !== 'Regtest',
       });
 
       trackMixPanel(AnalyticsEvents.TransactionConfirmed, {
@@ -219,7 +219,7 @@ function SendOrdinalScreen() {
   return (
     <StepDisplay
       summary={summary}
-      ordinal={selectedOrdinal}
+      ordinal={selectedOrdinal ?? undefined}
       currentStep={currentStep}
       setCurrentStep={setCurrentStep}
       recipientAddress={recipientAddress}

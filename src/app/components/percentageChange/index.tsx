@@ -85,7 +85,7 @@ function PercentageChange({
       const fiatBalance =
         currency &&
         getFiatEquivalent(
-          Number(getBalanceAmount(currency, fungibleToken, stxData, btcBalance)),
+          Number(getBalanceAmount(currency, fungibleToken, stxData, btcBalance ?? undefined)),
           currency,
           BigNumber(stxBtcRate),
           BigNumber(btcFiatRate),

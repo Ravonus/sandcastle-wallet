@@ -230,7 +230,7 @@ const useRbfTransactionData = (transaction?: BtcTransactionData | StxTransaction
         esploraProvider: btcClient,
       });
 
-      const mempoolFees = await mempoolApi.getRecommendedFees(network.type);
+      const mempoolFees = await mempoolApi.getRecommendedFees(network);
       const rbfRecommendedFeesResponse = await rbfTx.getRbfRecommendedFees(mempoolFees);
 
       const rbfTransactionSummary = await rbf.getRbfTransactionSummary(btcClient, transaction.txid);

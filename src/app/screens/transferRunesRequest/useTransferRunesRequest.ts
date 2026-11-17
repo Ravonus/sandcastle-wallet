@@ -46,6 +46,7 @@ const useTransferRunes = ({ tabId, messageId, recipients }: Args) => {
         requestRecipients,
         Number(desiredFeeRate),
       );
+      if (!tx) throw new Error('Rune transactions are unavailable on this network.');
       const txSummary = await tx.getSummary();
       return { tx, txSummary };
     },

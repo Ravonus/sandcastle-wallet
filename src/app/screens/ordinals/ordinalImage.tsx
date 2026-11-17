@@ -11,6 +11,7 @@ import {
 } from '@secretkeylabs/xverse-core';
 import { XVERSE_ORDIVIEW_URL } from '@utils/constants';
 import { getFetchableUrl } from '@utils/helper';
+import inscriptionContentUrl from '@utils/inscriptionContentUrl';
 import { isThumbnailInscription } from '@utils/inscriptions';
 import Image from 'rc-image';
 import { useEffect, useMemo, useState } from 'react';
@@ -133,6 +134,7 @@ function OrdinalImage({
   const { t } = useTranslation('translation', { keyPrefix: 'NFT_DASHBOARD_SCREEN' });
   const [brc721eImage, setBrc721eImage] = useState<string | undefined>(undefined);
   const { network } = useWalletSelector();
+  const isRegtest = network.type === 'Regtest';
 
   useEffect(() => {
     const fetchBrc721eMetadata = async () => {
@@ -159,10 +161,10 @@ function OrdinalImage({
       }
     };
 
-    if (textContent?.includes('brc-721e')) {
+    if (!isRegtest && textContent?.includes('brc-721e')) {
       fetchBrc721eMetadata();
     }
-  }, [textContent, network.type]);
+  }, [textContent, network.type, isRegtest]);
 
   let loaderSize = 151;
   if (inNftDetail && isGalleryOpen) {
@@ -183,6 +185,7 @@ function OrdinalImage({
           </LoaderContainer>
         }
         src={src}
+        fallback={isRegtest ? PlaceholderImage : undefined}
         preview={false}
       />
     </ImageContainer>
@@ -194,6 +197,24 @@ function OrdinalImage({
     () => getBrc20Details(textContent!, contentType),
     [textContent, contentType],
   );
+
+  if (isRegtest) {
+    const url = inscriptionContentUrl(network, ordinal.id);
+    if (url && /^image\/(png|jpeg|gif|webp|avif|bmp|svg\+xml)(;|$)/i.test(contentType)) {
+      return renderImage(t('ORDINAL'), url);
+    }
+    return (
+      <ImageContainer data-testid="token-image" inNftDetail={inNftDetail}>
+        {textContent ? (
+          <OrdinalContentText inNftSend={inNftSend} isSmall={isSmallImage}>
+            {textContent.slice(0, 10000)}
+          </OrdinalContentText>
+        ) : (
+          <img src={placeholderIcon ?? PlaceholderImage} alt="ordinal" />
+        )}
+      </ImageContainer>
+    );
+  }
 
   if (isThumbnailInscription(ordinal)) {
     return renderImage(

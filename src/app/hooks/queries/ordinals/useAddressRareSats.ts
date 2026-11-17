@@ -1,3 +1,4 @@
+import getBitcoinClients from '@common/utils/bitcoinClients';
 import useSelectedAccount from '@hooks/useSelectedAccount';
 import useWalletSelector from '@hooks/useWalletSelector';
 import {
@@ -15,6 +16,8 @@ export const useAddressRareSats = () => {
   const { network } = useWalletSelector();
 
   const getRareSatsByAddress = async ({ pageParam = 0 }) => {
+    if (network.type === 'Regtest')
+      return { total: 0, results: [], offset: pageParam, limit: PAGE_SIZE };
     if (!ordinalsAddress) {
       throw new InvalidParamsError('ordinalsAddress is required');
     }
@@ -32,7 +35,7 @@ export const useAddressRareSats = () => {
     return bundleResponse;
   };
 
-  return useInfiniteQuery(['rare-sats', ordinalsAddress], getRareSatsByAddress, {
+  return useInfiniteQuery(['rare-sats', network, ordinalsAddress], getRareSatsByAddress, {
     retry: handleRetries,
     getNextPageParam: (lastPage, allPages) => {
       const currentLength = allPages.map((page) => page.results).flat().length;
@@ -56,13 +59,18 @@ export const useGetUtxoOrdinalBundle = (
     }
 
     const [txid, vout] = output.split(':');
-    const bundleResponse = await getUtxoOrdinalBundle(network.type, txid, parseInt(vout, 10));
-    return bundleResponse;
+    const bundleResponse = await getUtxoOrdinalBundle(
+      network.type,
+      txid,
+      parseInt(vout, 10),
+      getBitcoinClients(network).regtestOrdinals,
+    );
+    return bundleResponse ?? null;
   };
 
   const { data, isLoading } = useQuery({
     enabled: !!(output && shouldMakeTheCall),
-    queryKey: ['rare-sats', output, network.type],
+    queryKey: ['rare-sats', output, network],
     queryFn: getUtxoOrdinalBundleByOutput,
     retry: handleRetries,
     staleTime: 1 * 60 * 1000, // 1 min

@@ -127,7 +127,7 @@ export default function TokenImage({
   }, [ftProtocol, customProtocolIcon]);
 
   const renderIcon = () => {
-    if (imageUrl) {
+    if (imageUrl && network.type !== 'Regtest') {
       return (
         <TickerImage
           data-testid="token-image"
@@ -148,6 +148,7 @@ export default function TokenImage({
       );
     }
 
+    if (network.type === 'Regtest') return null;
     if (fungibleToken.protocol === 'runes') {
       if (fungibleToken.runeInscriptionId) {
         return (

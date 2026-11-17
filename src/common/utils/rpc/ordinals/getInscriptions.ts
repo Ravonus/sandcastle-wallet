@@ -1,4 +1,5 @@
 import { getTabIdFromPort } from '@common/utils';
+import getBitcoinClients from '@common/utils/bitcoinClients';
 import getSelectedAccount from '@common/utils/getSelectedAccount';
 import { RpcErrorCode, type GetInscriptionsRequestMessage } from '@sats-connect/core';
 import { OrdinalsApi } from '@secretkeylabs/xverse-core';
@@ -39,7 +40,10 @@ const handleGetInscriptions = async (
     return;
   }
 
-  const ordinalsApi = new OrdinalsApi({ network: network.type });
+  const ordinalsApi = new OrdinalsApi({
+    network: network.type,
+    regtestOrdinals: getBitcoinClients(network).regtestOrdinals,
+  });
 
   try {
     const inscriptionsList = await ordinalsApi.getInscriptions(

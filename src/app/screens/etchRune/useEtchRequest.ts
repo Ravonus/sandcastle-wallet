@@ -75,7 +75,8 @@ const useEtchRequest = () => {
   const handleEtch = async () => {
     try {
       const { data, error } = await createEtchOrder();
-      if (!error) {
+      if (!error && !data) throw new Error('Rune order service is unavailable.');
+      if (data) {
         setOrderId(data.orderId);
         setFeeRate(etchRequest.feeRate.toString());
         const fundingTx = await createOrderFundingTx(

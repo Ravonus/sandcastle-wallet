@@ -12,7 +12,7 @@ const useGetQuotes = () => {
   const [error, setError] = useState<string | null>(null);
   const { network } = useWalletSelector();
 
-  const xverseApiClient = getXverseApiClient(network.type);
+  const xverseApiClient = getXverseApiClient(network);
 
   const fetchQuotes = async (request: GetQuotesRequest) => {
     setLoading(true);

@@ -1,4 +1,4 @@
-import { defaultMainnet, initialNetworksList } from '@secretkeylabs/xverse-core';
+import { defaultRegtest, initialNetworksList } from '@secretkeylabs/xverse-core';
 import { REHYDRATE } from 'redux-persist';
 import {
   AddToHideCollectiblesKey,
@@ -68,8 +68,9 @@ import {
  * TODO refactor most of these values out of the store and use query cache instead
  */
 export const initialWalletState: WalletState = {
-  network: { ...defaultMainnet },
+  network: { ...defaultRegtest },
   savedNetworks: initialNetworksList,
+  exposeLocalRegtestConnector: false,
   accountsList: [],
   ledgerAccountsList: [],
   keystoneAccountsList: [],
@@ -178,7 +179,15 @@ const walletReducer = (
           ...state.savedNetworks.filter((n) => n.type !== action.network.type),
           action.network,
         ],
-        accountsList: [],
+        accountsList: action.accountsList ?? state.accountsList,
+        exposeLocalRegtestConnector:
+          action.exposeLocalRegtestConnector ?? state.exposeLocalRegtestConnector,
+        selectedAccountType:
+          action.network.type === 'Regtest' ? 'software' : state.selectedAccountType,
+        selectedAccountIndex:
+          action.network.type === 'Regtest' && state.selectedAccountType !== 'software'
+            ? (action.accountsList ?? state.accountsList)[0]?.id ?? 0
+            : state.selectedAccountIndex,
         accountBalances: {},
       };
     case ChangeBtcPaymentAddressTypeKey:

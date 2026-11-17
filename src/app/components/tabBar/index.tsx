@@ -1,3 +1,4 @@
+import useWalletSelector from '@hooks/useWalletSelector';
 import { ChartLineUp, Gear, Globe, SketchLogo, Wallet } from '@phosphor-icons/react';
 import { isInOptions, type TabType } from '@utils/helper';
 import { useEffect, useRef, useState } from 'react';
@@ -46,6 +47,8 @@ type Props = {
 function BottomTabBar({ tab }: Props) {
   const navigate = useNavigate();
   const theme = useTheme();
+  const { network } = useWalletSelector();
+  const isRegtest = network.type === 'Regtest';
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const containerPadding = parseInt(theme.space.xl, 10);
@@ -57,7 +60,9 @@ function BottomTabBar({ tab }: Props) {
   }, []);
 
   const getPosition = () => {
-    const gap = (containerWidth - 2 * containerPadding - 5 * BUTTON_WIDTH) / 4;
+    const buttonCount = isRegtest ? 3 : 5;
+    const gap =
+      (containerWidth - 2 * containerPadding - buttonCount * BUTTON_WIDTH) / (buttonCount - 1);
 
     switch (tab) {
       case 'nft':
@@ -67,7 +72,7 @@ function BottomTabBar({ tab }: Props) {
       case 'explore':
         return containerPadding + 3 * (BUTTON_WIDTH + gap);
       case 'settings':
-        return containerPadding + 4 * (BUTTON_WIDTH + gap);
+        return containerPadding + (buttonCount - 1) * (BUTTON_WIDTH + gap);
       default: // 'dashboard'
         return containerPadding;
     }
@@ -124,18 +129,22 @@ function BottomTabBar({ tab }: Props) {
           size="24"
         />
       </Button>
-      <Button data-testid="nav-stacking" onClick={handleStackingButtonClick}>
-        <ChartLineUp
-          color={tab === 'stacking' ? theme.colors.white_0 : theme.colors.white_600}
-          size="24"
-        />
-      </Button>
-      <Button data-testid="nav-explore" onClick={handleExploreButtonClick}>
-        <Globe
-          color={tab === 'explore' ? theme.colors.white_0 : theme.colors.white_600}
-          size="24"
-        />
-      </Button>
+      {!isRegtest && (
+        <>
+          <Button data-testid="nav-stacking" onClick={handleStackingButtonClick}>
+            <ChartLineUp
+              color={tab === 'stacking' ? theme.colors.white_0 : theme.colors.white_600}
+              size="24"
+            />
+          </Button>
+          <Button data-testid="nav-explore" onClick={handleExploreButtonClick}>
+            <Globe
+              color={tab === 'explore' ? theme.colors.white_0 : theme.colors.white_600}
+              size="24"
+            />
+          </Button>
+        </>
+      )}
       <Button data-testid="nav-settings" onClick={handleSettingButtonClick}>
         <Gear
           color={tab === 'settings' ? theme.colors.white_0 : theme.colors.white_600}

@@ -70,7 +70,9 @@ function Home() {
   });
   const selectedAccount = useSelectedAccount();
   const { stxAddress, btcAddress } = selectedAccount;
-  const { hideStx, spamToken, balanceHidden } = useWalletSelector();
+  const { hideStx, spamToken, balanceHidden, network } = useWalletSelector();
+  const isRegtest = network.type === 'Regtest';
+  const needsRegtestUrls = isRegtest && (!network.btcApiUrl || !network.ordApiUrl);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [openReceiveModal, setOpenReceiveModal] = useState(false);
@@ -122,9 +124,10 @@ function Home() {
     (isInitialLoadingRunes && failureCountRunes === 0 && errorUpdateCountRunes === 0);
 
   const isInitialLoading =
-    (isInitialLoadingBtc && failureCountBtc === 0 && errorUpdateCountBtc === 0) ||
-    (isInitialLoadingStx && failureCountStx === 0 && errorUpdateCountStx === 0) ||
-    isInitialLoadingTokens;
+    !needsRegtestUrls &&
+    ((isInitialLoadingBtc && failureCountBtc === 0 && errorUpdateCountBtc === 0) ||
+      (isInitialLoadingStx && failureCountStx === 0 && errorUpdateCountStx === 0) ||
+      (!isRegtest && isInitialLoadingTokens));
 
   const isRefetching =
     refetchingBtcWalletData ||
@@ -349,7 +352,7 @@ function Home() {
   }, []);
 
   const isCrossChainSwapsEnabled = useHasFeature(FeatureId.CROSS_CHAIN_SWAPS);
-  const showSwaps = isCrossChainSwapsEnabled;
+  const showSwaps = !isRegtest && isCrossChainSwapsEnabled;
 
   const loaderTransitions = useTransition(isInitialLoading, {
     from: { opacity: isInitialMount.current ? 1 : 0 },
@@ -366,17 +369,20 @@ function Home() {
     <>
       <AccountHeaderComponent />
       <Container>
-        <BalanceCard
-          isLoading={isInitialLoading}
-          isRefetching={isRefetching}
-          combinedFtList={combinedFtList}
-        />
+        {needsRegtestUrls && <p role="status">{t('REGTEST_SET_URLS')}</p>}
+        {!needsRegtestUrls && (
+          <BalanceCard
+            isLoading={isInitialLoading}
+            isRefetching={isRefetching}
+            combinedFtList={combinedFtList}
+          />
+        )}
         <RowButtonContainer data-testid="transaction-buttons-row">
           <SquareButton
             icon={<ArrowUp weight="regular" size="20" />}
             text={t('SEND')}
-            onPress={onSendModalOpen}
-            disabled={isInitialLoading}
+            onPress={isRegtest ? onBtcSendClick : onSendModalOpen}
+            disabled={isInitialLoading || needsRegtestUrls}
           />
           <SquareButton
             icon={<ArrowDown weight="regular" size="20" />}
@@ -392,12 +398,14 @@ function Home() {
               disabled={isInitialLoading}
             />
           )}
-          <SquareButton
-            icon={<Plus weight="regular" size="20" />}
-            text={t('BUY')}
-            onPress={onBuyModalOpen}
-            disabled={isInitialLoading}
-          />
+          {!isRegtest && (
+            <SquareButton
+              icon={<Plus weight="regular" size="20" />}
+              text={t('BUY')}
+              onPress={onBuyModalOpen}
+              disabled={isInitialLoading}
+            />
+          )}
         </RowButtonContainer>
 
         <StyledDivider color="elevation3" />
@@ -413,7 +421,7 @@ function Home() {
               </animated.div>
             ) : (
               <animated.div style={style}>
-                {btcAddress && (
+                {btcAddress && !needsRegtestUrls && (
                   <StyledTokenTile
                     title={t('BITCOIN')}
                     currency="BTC"
@@ -421,7 +429,7 @@ function Home() {
                     onPress={handleTokenPressed}
                   />
                 )}
-                {stxAddress && !hideStx && (
+                {!isRegtest && stxAddress && !hideStx && (
                   <StyledTokenTile
                     title={t('STACKS')}
                     currency="STX"
@@ -429,26 +437,29 @@ function Home() {
                     onPress={handleTokenPressed}
                   />
                 )}
-                {combinedFtList.map((coin) => (
-                  <StyledTokenTile
-                    key={coin.principal}
-                    title={coin.name}
-                    currency="FT"
-                    loading={isInitialLoadingTokens}
-                    fungibleToken={coin}
-                    onPress={handleTokenPressed}
-                  />
-                ))}
+                {!isRegtest &&
+                  combinedFtList.map((coin) => (
+                    <StyledTokenTile
+                      key={coin.principal}
+                      title={coin.name}
+                      currency="FT"
+                      loading={isInitialLoadingTokens}
+                      fungibleToken={coin}
+                      onPress={handleTokenPressed}
+                    />
+                  ))}
               </animated.div>
             ),
           )}
         </ColumnContainer>
-        <TokenListButtonContainer>
-          <TokenListButton onClick={handleManageTokenListOnClick}>
-            <ListDashes size={20} />
-            {t('MANAGE_TOKEN')}
-          </TokenListButton>
-        </TokenListButtonContainer>
+        {!isRegtest && (
+          <TokenListButtonContainer>
+            <TokenListButton onClick={handleManageTokenListOnClick}>
+              <ListDashes size={20} />
+              {t('MANAGE_TOKEN')}
+            </TokenListButton>
+          </TokenListButtonContainer>
+        )}
 
         <ReceiveSheet visible={openReceiveModal} onClose={() => setOpenReceiveModal(false)} />
 
@@ -472,7 +483,7 @@ function Home() {
           title={t('BUY')}
           loadingWalletData={isInitialLoadingStx || isInitialLoadingBtc}
         />
-        <AnnouncementModal />
+        {!isRegtest && <AnnouncementModal />}
       </Container>
       <BottomBar tab="dashboard" />
     </>

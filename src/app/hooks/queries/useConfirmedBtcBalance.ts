@@ -1,16 +1,21 @@
 import useBtcClient from '@hooks/apiClients/useBtcClient';
 import useSelectedAccount from '@hooks/useSelectedAccount';
+import useWalletSelector from '@hooks/useWalletSelector';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 const useConfirmBtcBalance = () => {
   const { btcAddress } = useSelectedAccount();
   const btcClient = useBtcClient();
+  const { network } = useWalletSelector();
 
-  const fetchBtcAddressData = async () => btcClient.getAddressData(btcAddress);
+  const fetchBtcAddressData = async () =>
+    !btcAddress || (network.type === 'Regtest' && !network.btcApiUrl)
+      ? null
+      : btcClient.getAddressData(btcAddress);
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['btc-address-data'],
+    queryKey: ['btc-address-data', network, btcAddress],
     queryFn: fetchBtcAddressData,
   });
 

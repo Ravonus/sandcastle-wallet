@@ -48,7 +48,7 @@ function useFeaturedDapps() {
   };
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['featuredApps', sessionStartTime],
+    queryKey: ['featuredApps', network.type, sessionStartTime],
     queryFn: fetchFeaturedDapps,
     staleTime: 60 * 60 * 1000, // 1 hour
   });

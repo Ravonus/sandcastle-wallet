@@ -42,7 +42,7 @@ function ReceiveSheet({ visible, onClose }: Props) {
 
   const selectedAccount = useSelectedAccount();
   const { stxAddress, btcAddress, ordinalsAddress } = selectedAccount;
-  const { btcPaymentAddressType, hasBackedUpWallet } = useWalletSelector();
+  const { btcPaymentAddressType, hasBackedUpWallet, network } = useWalletSelector();
   const navigate = useNavigate();
 
   const [areReceivingAddressesVisible, setAreReceivingAddressesVisible] = useState(
@@ -110,7 +110,7 @@ function ReceiveSheet({ visible, onClose }: Props) {
         icon={<MergedOrdinalsIcon src={ordinalsIcon} />}
       />
 
-      {stxAddress && (
+      {network.type !== 'Regtest' && stxAddress && (
         <ReceiveCardComponent
           title={t('STACKS_AND_TOKEN')}
           address={stxAddress}

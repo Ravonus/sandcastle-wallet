@@ -12,7 +12,7 @@ const useExecuteUtxoOrder = () => {
   const [error, setError] = useState<string | null>(null);
   const { network } = useWalletSelector();
 
-  const xverseApiClient = getXverseApiClient(network.type);
+  const xverseApiClient = getXverseApiClient(network);
 
   const executeUtxoOrder = async (request: ExecuteUtxoOrderRequest) => {
     setLoading(true);

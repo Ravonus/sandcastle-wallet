@@ -1,3 +1,4 @@
+import useWalletSelector from '@hooks/useWalletSelector';
 import { ChartLineUp, Gear, Globe, SketchLogo, Wallet } from '@phosphor-icons/react';
 import type { TabType } from '@utils/helper';
 import { useTranslation } from 'react-i18next';
@@ -40,6 +41,8 @@ type Props = {
 
 function VerticalTabBar({ tab, className }: Props) {
   const theme = useTheme();
+  const { network } = useWalletSelector();
+  const isRegtest = network.type === 'Regtest';
   const { t } = useTranslation('translation', { keyPrefix: 'COMMON' });
 
   return (
@@ -58,20 +61,24 @@ function VerticalTabBar({ tab, className }: Props) {
         />
         {t('COLLECTIBLES')}
       </StyledLink>
-      <StyledLink to="/stacking" data-testid="nav-stacking" $isActive={tab === 'stacking'}>
-        <ChartLineUp
-          color={tab === 'stacking' ? theme.colors.white_0 : theme.colors.white_600}
-          size="24"
-        />
-        {t('EARN')}
-      </StyledLink>
-      <StyledLink to="/explore" data-testid="nav-explore" $isActive={tab === 'explore'}>
-        <Globe
-          color={tab === 'explore' ? theme.colors.white_0 : theme.colors.white_600}
-          size="24"
-        />
-        {t('EXPLORE')}
-      </StyledLink>
+      {!isRegtest && (
+        <>
+          <StyledLink to="/stacking" data-testid="nav-stacking" $isActive={tab === 'stacking'}>
+            <ChartLineUp
+              color={tab === 'stacking' ? theme.colors.white_0 : theme.colors.white_600}
+              size="24"
+            />
+            {t('EARN')}
+          </StyledLink>
+          <StyledLink to="/explore" data-testid="nav-explore" $isActive={tab === 'explore'}>
+            <Globe
+              color={tab === 'explore' ? theme.colors.white_0 : theme.colors.white_600}
+              size="24"
+            />
+            {t('EXPLORE')}
+          </StyledLink>
+        </>
+      )}
       <StyledLink to="/settings" data-testid="nav-settings" $isActive={tab === 'settings'}>
         <Gear
           color={tab === 'settings' ? theme.colors.white_0 : theme.colors.white_600}

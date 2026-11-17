@@ -6,13 +6,13 @@ function useNotificationBanners() {
   const { network } = useWalletSelector();
 
   const fetchNotificationBanners = async () => {
-    const response = await getXverseApiClient(network.type).getNotificationBanners();
+    const response = await getXverseApiClient(network).getNotificationBanners();
 
     return response;
   };
 
   const { data, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ['notificationBanners'],
+    queryKey: ['notificationBanners', network.type],
     queryFn: fetchNotificationBanners,
     staleTime: 60 * 60 * 1000, // 1 hour
   });

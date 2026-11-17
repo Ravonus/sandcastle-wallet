@@ -52,7 +52,7 @@ function BalanceCard({ isLoading, isRefetching, combinedFtList }: Props) {
   const { t } = useTranslation('translation', { keyPrefix: 'DASHBOARD_SCREEN' });
   const { t: commonT } = useTranslation('translation', { keyPrefix: 'COMMON' });
   const selectedAccount = useSelectedAccount();
-  const { fiatCurrency, hideStx, accountBalances, balanceHidden, showBalanceInBtc } =
+  const { fiatCurrency, hideStx, accountBalances, balanceHidden, showBalanceInBtc, network } =
     useWalletSelector();
   const { confirmedPaymentBalance: btcBalance, isLoading: btcBalanceLoading } =
     useSelectedAccountBtcBalance();
@@ -66,16 +66,21 @@ function BalanceCard({ isLoading, isRefetching, combinedFtList }: Props) {
   const { data: runesCoinList = [] } = useVisibleRuneFungibleTokens();
   const { toggleBalanceView, balanceDisplayState } = useToggleBalanceView();
 
-  const balance = calculateTotalBalance({
-    stxBalance: BigNumber(stxData?.balance ?? 0).toString(),
-    btcBalance: (btcBalance ?? 0).toString(),
-    sipCoinsList: sip10CoinsList,
-    brcCoinsList: brc20CoinsList,
-    runesCoinList,
-    btcFiatRate,
-    stxBtcRate,
-    hideStx,
-  });
+  const isRegtest = network.type === 'Regtest';
+  const balance = isRegtest
+    ? BigNumber(btcBalance ?? 0)
+        .shiftedBy(-8)
+        .toFixed()
+    : calculateTotalBalance({
+        stxBalance: BigNumber(stxData?.balance ?? 0).toString(),
+        btcBalance: (btcBalance ?? 0).toString(),
+        sipCoinsList: sip10CoinsList,
+        brcCoinsList: brc20CoinsList,
+        runesCoinList,
+        btcFiatRate,
+        stxBtcRate,
+        hideStx,
+      });
 
   useEffect(() => {
     if (!balance || !selectedAccount || isLoading || btcBalanceLoading || isRefetching) {
@@ -157,7 +162,7 @@ function BalanceCard({ isLoading, isRefetching, combinedFtList }: Props) {
                     <BalanceHeadingText>
                       {t('TOTAL_BALANCE')}{' '}
                       <span data-testid="currency-text">
-                        {showBalanceInBtc ? commonT('BTC') : fiatCurrency}
+                        {isRegtest || showBalanceInBtc ? commonT('BTC') : fiatCurrency}
                       </span>
                     </BalanceHeadingText>
                   )}
@@ -169,14 +174,18 @@ function BalanceCard({ isLoading, isRefetching, combinedFtList }: Props) {
                   onKeyDown={onKeyDown}
                 >
                   {(() => {
-                    switch (balanceDisplayState) {
+                    switch (isRegtest && !balanceHidden ? 'btc' : balanceDisplayState) {
                       case 'btc':
                         return (
                           <NumericFormat
-                            value={getFiatBtcEquivalent(
-                              BigNumber(balance),
-                              BigNumber(btcFiatRate),
-                            ).toString()}
+                            value={
+                              isRegtest
+                                ? balance
+                                : getFiatBtcEquivalent(
+                                    BigNumber(balance),
+                                    BigNumber(btcFiatRate),
+                                  ).toString()
+                            }
                             displayType="text"
                             prefix={BTC_SYMBOL}
                             thousandSeparator
@@ -220,19 +229,21 @@ function BalanceCard({ isLoading, isRefetching, combinedFtList }: Props) {
                     }
                   })()}
                 </BalanceContainer>
-                <PercentageChangeContainer>
-                  <PercentageChange
-                    isHidden={balanceHidden}
-                    displayTimeInterval
-                    ftCurrencyPairs={[
-                      [undefined, 'BTC'],
-                      [undefined, 'STX'],
-                      ...combinedFtList.map(
-                        (ft) => [ft, 'FT'] as [FungibleToken | undefined, CurrencyTypes],
-                      ),
-                    ]}
-                  />
-                </PercentageChangeContainer>
+                {!isRegtest && (
+                  <PercentageChangeContainer>
+                    <PercentageChange
+                      isHidden={balanceHidden}
+                      displayTimeInterval
+                      ftCurrencyPairs={[
+                        [undefined, 'BTC'],
+                        [undefined, 'STX'],
+                        ...combinedFtList.map(
+                          (ft) => [ft, 'FT'] as [FungibleToken | undefined, CurrencyTypes],
+                        ),
+                      ]}
+                    />
+                  </PercentageChangeContainer>
+                )}
               </>
             )}
           </animated.div>

@@ -85,7 +85,7 @@ function ConfirmBrc20Transaction() {
   });
 
   const { txFee, inscriptionFee, totalFee, transferUtxoValue } =
-    getFeeValuesForBrc20OneStepTransfer(commitValueBreakdown ?? initEstimatedFees.valueBreakdown);
+    getFeeValuesForBrc20OneStepTransfer(commitValueBreakdown ?? initEstimatedFees?.valueBreakdown);
 
   useEffect(() => {
     if (feeMultipliers && txFee.isGreaterThan(new BigNumber(feeMultipliers.thresholdHighSatsFee))) {
@@ -162,6 +162,7 @@ function ConfirmBrc20Transaction() {
       { ...estimateFeesParams, feeRate },
       transactionContext,
     );
+    if (!estimatedFees) throw new Error('BRC-20 fees are unavailable.');
     const { txFee: newTxFee } = getFeeValuesForBrc20OneStepTransfer(estimatedFees.valueBreakdown);
     return newTxFee.toNumber();
   };

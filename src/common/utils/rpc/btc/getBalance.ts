@@ -1,16 +1,17 @@
 /* eslint-disable import/prefer-default-export */
 import { getTabIdFromPort } from '@common/utils';
+import getBitcoinClients from '@common/utils/bitcoinClients';
 import getSelectedAccount, { embellishAccountWithDetails } from '@common/utils/getSelectedAccount';
 import { safePromise, type Result } from '@common/utils/safe';
 import type { GetBalanceRequestMessage } from '@sats-connect/core';
-import { BitcoinEsploraApiProvider, type NetworkType } from '@secretkeylabs/xverse-core';
+import { type SettingsNetwork } from '@secretkeylabs/xverse-core';
 import rootStore from '@stores/index';
 import { sendGetBalanceSuccessResponseMessage } from '../responseMessages/bitcoin';
 import { sendInternalErrorMessage } from '../responseMessages/errors';
 
 async function getBalance(
   address: string,
-  networkType: NetworkType,
+  settings: SettingsNetwork,
 ): Promise<
   Result<{
     confirmed: number;
@@ -18,7 +19,7 @@ async function getBalance(
     total: number;
   }>
 > {
-  const api = new BitcoinEsploraApiProvider({ network: networkType });
+  const api = getBitcoinClients(settings).bitcoin;
 
   const [error, data] = await safePromise(api.getBalance(address));
   if (error) {
@@ -70,7 +71,7 @@ export async function handleGetBalance(
   const detailedAccount = embellishAccountWithDetails(account, btcPaymentAddressType);
 
   const address = detailedAccount.btcAddress;
-  const [getBalanceError, balances] = await getBalance(address, network.type);
+  const [getBalanceError, balances] = await getBalance(address, network);
   if (getBalanceError) {
     sendInternalErrorMessage({
       tabId,

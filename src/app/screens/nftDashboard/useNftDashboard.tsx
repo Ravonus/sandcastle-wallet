@@ -94,8 +94,14 @@ export type NftDashboardState = {
 const useNftDashboard = (): NftDashboardState => {
   const { t } = useTranslation('translation', { keyPrefix: 'NFT_DASHBOARD_SCREEN' });
   const dispatch = useDispatch();
-  const { hasActivatedOrdinalsKey, hasActivatedRareSatsKey, rareSatsNoticeDismissed } =
-    useWalletSelector();
+  const {
+    hasActivatedOrdinalsKey: ordinalsEnabled,
+    hasActivatedRareSatsKey: rareSatsEnabled,
+    rareSatsNoticeDismissed,
+    network,
+  } = useWalletSelector();
+  const hasActivatedOrdinalsKey = network.type === 'Regtest' || ordinalsEnabled;
+  const hasActivatedRareSatsKey = network.type !== 'Regtest' && rareSatsEnabled;
   const [openReceiveModal, setOpenReceiveModal] = useState(false);
   const [showNoticeAlert, setShowNoticeAlert] = useState(false);
   const stacksNftsQuery = useStacksCollectibles();

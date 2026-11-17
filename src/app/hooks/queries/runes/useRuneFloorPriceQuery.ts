@@ -10,7 +10,7 @@ export default function useRuneFloorPriceQuery(runeName: string, backgroundRefet
     async () =>
       runesApi
         .getRuneMarketData(runeName)
-        .then((res) => Number(res.floorUnitPrice?.formatted ?? 0)),
+        .then((res) => Number(res?.floorUnitPrice?.formatted ?? 0)),
     [runeName, runesApi],
   );
   return useQuery({

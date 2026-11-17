@@ -21,9 +21,10 @@ export const fetchSip10FungibleTokens =
     currentNetworkInstance: StacksNetwork,
   ): (() => Promise<FungibleToken[]>) =>
   async () => {
+    if (network.type === 'Regtest') return [];
     const sip10Balances = await getFtData(stxAddress, currentNetworkInstance);
     const sip10ContractInfos =
-      (await getXverseApiClient(network.type).getSip10Tokens(
+      (await getXverseApiClient(network).getSip10Tokens(
         sip10Balances.map((ft) => ft.principal),
         fiatCurrency,
       )) || [];

@@ -118,7 +118,8 @@ const useMintRequest = (): {
     setRuneInfo(info);
     try {
       const { data, error } = await createMintOrder();
-      if (!error) {
+      if (!error && !data) throw new Error('Rune order service is unavailable.');
+      if (data) {
         setOrderId(data.orderId);
         setFeeRate(mintRequest.feeRate.toString());
         const fundingTx = await createOrderFundingTx(

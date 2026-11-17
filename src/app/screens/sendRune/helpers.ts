@@ -27,6 +27,7 @@ export const generateTransaction = async (
     ],
     feeRate,
   );
+  if (!transaction) throw new Error('Rune transactions are unavailable on this network.');
   try {
     const summary = await transaction.getSummary();
     return { transaction, summary };

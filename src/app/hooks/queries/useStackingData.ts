@@ -10,21 +10,21 @@ const useStackingData = () => {
   const { network } = useWalletSelector();
   const { data: delegationStateData, isLoading: delegateStateIsLoading } = useDelegationState();
 
-  const xverseApiClient = getXverseApiClient(network.type);
+  const xverseApiClient = getXverseApiClient(network);
 
   const results = useQueries({
     queries: [
       {
         queryKey: ['stacking-core-info', network],
-        queryFn: () => getStacksInfo(network.address),
+        queryFn: () => (network.type === 'Regtest' ? null : getStacksInfo(network.address)),
       },
       {
         queryKey: ['stacking-pool-info', network.type],
-        queryFn: () => xverseApiClient.fetchStackingPoolInfo(),
+        queryFn: async () => (await xverseApiClient.fetchStackingPoolInfo()) ?? null,
       },
       {
         queryKey: ['pool-stacker-info', stxAddress, network.type],
-        queryFn: () => xverseApiClient.fetchPoolStackerInfo(stxAddress),
+        queryFn: async () => (await xverseApiClient.fetchPoolStackerInfo(stxAddress)) ?? null,
       },
     ],
   });
@@ -47,7 +47,7 @@ const useStackingData = () => {
     poolInfo: poolInfoData!,
     delegationInfo: delegationStateData!,
     coreInfo: coreInfoData!,
-    stackerInfo: stackerInfoData,
+    stackerInfo: stackerInfoData ?? undefined,
   };
 
   return {

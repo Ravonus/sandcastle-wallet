@@ -12,7 +12,7 @@ const usePlaceUtxoOrder = () => {
   const [error, setError] = useState<string | null>(null);
   const { network } = useWalletSelector();
 
-  const xverseApiClient = getXverseApiClient(network.type);
+  const xverseApiClient = getXverseApiClient(network);
 
   const placeUtxoOrder = async (request: PlaceUtxoOrderRequest) => {
     setLoading(true);

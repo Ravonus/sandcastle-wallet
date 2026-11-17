@@ -24,7 +24,8 @@ export default function useOrdinalDetail() {
   const selectedAccount = useSelectedAccount();
   const { network, hasActivatedRareSatsKey, hiddenCollectibleIds } = useWalletSelector();
   const { id, from } = useParams();
-  const { data: ordinalData, isLoading } = useAddressInscription(id!);
+  const { data: inscription, isLoading } = useAddressInscription(id!);
+  const ordinalData = inscription ?? undefined;
   const { data: collectionMarketData } = useInscriptionCollectionMarketData(
     ordinalData?.collection_id,
   );
@@ -53,8 +54,11 @@ export default function useOrdinalDetail() {
     theme.colors[getInscriptionsCollectionGridItemSubTextColor(ordinalData)];
 
   const brc20Details = useMemo(
-    () => getBrc20Details(textContent ?? '', ordinalData?.content_type ?? ''),
-    [textContent, ordinalData?.content_type],
+    () =>
+      network.type === 'Regtest'
+        ? undefined
+        : getBrc20Details(textContent ?? '', ordinalData?.content_type ?? ''),
+    [textContent, ordinalData?.content_type, network.type],
   );
 
   const isInscriptionHidden = Object.keys(
@@ -115,8 +119,14 @@ export default function useOrdinalDetail() {
     }
   };
 
+  const detailUrl =
+    ordinalData?.id &&
+    (network.type === 'Regtest'
+      ? network.ordApiUrl && `${network.ordApiUrl}/inscription/${ordinalData.id}`
+      : `${XVERSE_ORDIVIEW_URL(network.type)}/inscription/${ordinalData.id}`);
+
   const openInOrdinalsExplorer = () => {
-    window.open(`${XVERSE_ORDIVIEW_URL(network.type)}/inscription/${ordinalData?.id}`);
+    if (detailUrl) window.open(detailUrl, '_blank', 'noopener,noreferrer');
   };
 
   const handleNavigationToRareSatsBundle = () => {
@@ -128,9 +138,7 @@ export default function useOrdinalDetail() {
   };
 
   const onCopyClick = () => {
-    navigator.clipboard.writeText(
-      `${XVERSE_ORDIVIEW_URL(network.type)}/inscription/${ordinalData?.id}`,
-    );
+    if (detailUrl) navigator.clipboard.writeText(detailUrl);
   };
 
   const backButtonText = ordinalData?.collection_id

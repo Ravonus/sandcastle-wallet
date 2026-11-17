@@ -60,6 +60,7 @@ function NodeInput({
   onReset,
   error,
   disabled,
+  placeholder,
 }: {
   label: string;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -68,6 +69,7 @@ function NodeInput({
   onReset: () => void;
   error: string;
   disabled?: boolean;
+  placeholder?: string;
 }) {
   const { t } = useTranslation('translation', { keyPrefix: 'SETTING_SCREEN' });
   const theme = useTheme();
@@ -81,7 +83,14 @@ function NodeInput({
         </NodeResetButton>
       </NodeInputHeader>
       <InputContainer>
-        <Input data-testid={label} onChange={onChange} value={value} disabled={disabled} />
+        <Input
+          aria-label={label}
+          placeholder={placeholder}
+          data-testid={label}
+          onChange={onChange}
+          value={value}
+          disabled={disabled}
+        />
         {value && (
           <Button onClick={onClear} disabled={disabled}>
             <XCircle size={18} weight="fill" color={theme.colors.white_200} />

@@ -52,7 +52,7 @@ function TokenTile({
   showProtocolIcon = true,
   hideSwapBalance = false,
 }: Props) {
-  const { fiatCurrency, balanceHidden, showBalanceInBtc } = useWalletSelector();
+  const { fiatCurrency, balanceHidden, showBalanceInBtc, network } = useWalletSelector();
   const { btcFiatRate, stxBtcRate } = useSupportedCoinRates();
   const { data: stxData } = useStxWalletData();
   const { confirmedPaymentBalance: btcBalance } = useSelectedAccountBtcBalance();
@@ -151,7 +151,9 @@ function TokenTile({
           {!loading && !hideSwapBalance && (
             <AmountContainer>
               {balanceHidden && <TokenTicker>{EMPTY_LABEL}</TokenTicker>}
-              {!balanceHidden && <PercentageChange ftCurrencyPairs={[[fungibleToken, currency]]} />}
+              {network.type !== 'Regtest' && !balanceHidden && (
+                <PercentageChange ftCurrencyPairs={[[fungibleToken, currency]]} />
+              )}
             </AmountContainer>
           )}
         </RowContainer>

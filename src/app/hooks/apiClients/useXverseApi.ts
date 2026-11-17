@@ -4,7 +4,7 @@ import useWalletSelector from '../useWalletSelector';
 
 const useXverseApi = () => {
   const { network } = useWalletSelector();
-  return useMemo(() => getXverseApiClient(network.type), [network.type]);
+  return useMemo(() => getXverseApiClient(network), [network]);
 };
 
 export default useXverseApi;

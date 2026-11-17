@@ -267,6 +267,7 @@
     "AMOUNT": "Amount"
   },
   "DASHBOARD_SCREEN": {
+    "REGTEST_SET_URLS": "Set your regtest API URLs in Settings → Network",
     "TOTAL_BALANCE": "Total Balance",
     "SHOW_BALANCE": "Show balance",
     "BITCOIN": "Bitcoin",
@@ -425,6 +426,10 @@
     "SWAP_FROM_TO": "Swap {{from}} for {{to}}"
   },
   "CONFIRM_TRANSACTION": {
+    "UNKNOWN_INPUT": "Unknown input",
+    "REGTEST_PURCHASE_TITLE": "Review Bitcoin inscription purchase",
+    "REGTEST_SINGLE_WARNING": "Partial transaction. The signature commits to the output paired with each signed input. The final fee and inscription destination can change.",
+    "REGTEST_SINGLE_PAYOUT": "{{outpoint}} commits to {{amount}} sats at {{address}}.",
     "SEND": "Confirm Transaction",
     "CUSTOM": "Custom",
     "EDIT": "Edit",
@@ -882,6 +887,7 @@
     "TRANSFER_ALL": "Transfer all"
   },
   "NFT_DETAIL_SCREEN": {
+    "REGTEST_OUTPUT": "Output",
     "RARE_SATS": "Rare Sats",
     "NFT_DETAIL": "Item detail",
     "WEB_GALLERY": "Open gallery",
@@ -976,6 +982,11 @@
       "DESCRIPTION": "Analytics is disabled in Sandcastle Wallet."
     },
     "BTC_URL": "BTC URL",
+    "REGTEST_BTC_URL": "Bitcoin API URL (esplora-style)",
+    "REGTEST_ORD_URL": "Ord API URL",
+    "REGTEST_CONNECTOR": "Expose local regtest test connector",
+    "SAVE_ANYWAY": "Save anyway",
+    "NETWORK_SAVE_FAILED": "Could not save network settings.",
     "STACKS_URL": "Stacks URL",
     "FALLBACK_BTC_URL": "Fallback BTC URL",
     "RESET_TO_DEFAULT": "Reset URL",

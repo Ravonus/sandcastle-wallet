@@ -1,5 +1,6 @@
 import AuthGuard from '@components/guards/auth';
-import { Outlet, type RouteObject } from 'react-router-dom';
+import useWalletSelector from '@hooks/useWalletSelector';
+import { Navigate, Outlet, useParams, type RouteObject } from 'react-router-dom';
 
 import RequestsRoutes from '@common/utils/route-urls';
 import { SingleTabGuard } from '@components/guards/singleTab';
@@ -82,6 +83,25 @@ import BtcSendRequest from 'app/screens/btcSendRequest';
 import ListRuneScreen from 'app/screens/listRune';
 import RoutePaths from './paths';
 
+function HostedFeature({
+  children,
+  allowedCurrencies = [],
+}: {
+  children: JSX.Element;
+  allowedCurrencies?: string[];
+}) {
+  const { network } = useWalletSelector();
+  const { currency } = useParams();
+  if (network.type === 'Regtest' && !allowedCurrencies.includes(currency ?? '')) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+}
+
+const hostedFeature = (element: JSX.Element, allowedCurrencies?: string[]) => (
+  <HostedFeature allowedCurrencies={allowedCurrencies}>{element}</HostedFeature>
+);
+
 const authedRoutesAnimated: RouteObject = {
   path: '/',
   element: (
@@ -109,30 +129,36 @@ const authedRoutes: RouteObject = {
     {
       path: 'import-ledger',
       element: (
-        <SingleTabGuard guardName="importLedger">
-          <ImportLedger />
-        </SingleTabGuard>
+        <HostedFeature>
+          <SingleTabGuard guardName="importLedger">
+            <ImportLedger />
+          </SingleTabGuard>
+        </HostedFeature>
       ),
     },
     {
       path: 'verify-ledger',
       element: (
-        <SingleTabGuard guardName="verifyLedger">
-          <VerifyLedger />
-        </SingleTabGuard>
+        <HostedFeature>
+          <SingleTabGuard guardName="verifyLedger">
+            <VerifyLedger />
+          </SingleTabGuard>
+        </HostedFeature>
       ),
     },
     {
       path: 'add-stx-address-ledger',
-      element: <LedgerAddStxAddress />,
+      element: hostedFeature(<LedgerAddStxAddress />),
     },
     {
       path: 'import-keystone',
       element: (
         <AuthGuard>
-          <SingleTabGuard guardName="importKeystone">
-            <ImportKeystone />
-          </SingleTabGuard>
+          <HostedFeature>
+            <SingleTabGuard guardName="importKeystone">
+              <ImportKeystone />
+            </SingleTabGuard>
+          </HostedFeature>
         </AuthGuard>
       ),
     },
@@ -149,7 +175,7 @@ const authedRoutesWithSidebar: RouteObject = {
   children: [
     {
       path: 'manage-tokens',
-      element: <ManageTokens />,
+      element: hostedFeature(<ManageTokens />),
     },
     {
       path: RoutePaths.AccountList,
@@ -157,43 +183,43 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: 'receive/:currency',
-      element: <Receive />,
+      element: hostedFeature(<Receive />, ['BTC', 'ORD']),
     },
     {
       path: 'swap',
-      element: <SwapScreen />,
+      element: hostedFeature(<SwapScreen />),
     },
     {
       path: RoutePaths.ConfirmStacksTransaction,
-      element: <ConfirmStxTransaction />,
+      element: hostedFeature(<ConfirmStxTransaction />),
     },
     {
       path: 'confirm-ft-tx',
-      element: <ConfirmFtTransaction />,
+      element: hostedFeature(<ConfirmFtTransaction />),
     },
     {
       path: 'confirm-brc20-tx',
-      element: <ConfirmBrc20Transaction />,
+      element: hostedFeature(<ConfirmBrc20Transaction />),
     },
     {
       path: 'execute-brc20-tx',
-      element: <ExecuteBrc20Transaction />,
+      element: hostedFeature(<ExecuteBrc20Transaction />),
     },
     {
       path: 'confirm-ledger-stx-tx',
-      element: <ConfirmLedgerStxTransaction />,
+      element: hostedFeature(<ConfirmLedgerStxTransaction />),
     },
     {
       path: RequestsRoutes.TransactionRequest,
-      element: <TransactionRequest />,
+      element: hostedFeature(<TransactionRequest />),
     },
     {
       path: RequestsRoutes.StxSignTransactions,
-      element: <StxSignTransactions />,
+      element: hostedFeature(<StxSignTransactions />),
     },
     {
       path: 'authentication-request',
-      element: <AuthenticationRequest />,
+      element: hostedFeature(<AuthenticationRequest />),
     },
     {
       path: RequestsRoutes.AddressRequest,
@@ -201,11 +227,11 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: 'stx-select-address-request',
-      element: <StxSelectAddressScreen />,
+      element: hostedFeature(<StxSelectAddressScreen />),
     },
     {
       path: 'stx-select-account-request',
-      element: <StxSelectAccountScreen />,
+      element: hostedFeature(<StxSelectAccountScreen />),
     },
     {
       path: RequestsRoutes.SignBtcTx,
@@ -217,7 +243,7 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: RequestsRoutes.RuneListingBatchSigning,
-      element: <RuneListingBatchSigningScreen />,
+      element: hostedFeature(<RuneListingBatchSigningScreen />),
     },
     {
       path: RequestsRoutes.SendBtcTx,
@@ -225,23 +251,23 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: 'speed-up-tx/:id',
-      element: <SpeedUpTransactionScreen />,
+      element: hostedFeature(<SpeedUpTransactionScreen />),
     },
     {
       path: 'create-inscription', // used by our legacy style inscriptions methods for the inscription service
-      element: <CreateInscription />,
+      element: hostedFeature(<CreateInscription />),
     },
     {
       path: 'create-repeat-inscriptions', // used by our legacy style inscriptions methods for the inscription service
-      element: <CreateInscription />,
+      element: hostedFeature(<CreateInscription />),
     },
     {
       path: 'stacking',
-      element: <Stacking />,
+      element: hostedFeature(<Stacking />),
     },
     {
       path: 'explore',
-      element: <Explore />,
+      element: hostedFeature(<Explore />),
     },
     {
       path: RoutePaths.Settings,
@@ -277,7 +303,7 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: RoutePaths.RecoverRunes,
-      element: <RecoverRunes />,
+      element: hostedFeature(<RecoverRunes />),
     },
     {
       path: RoutePaths.FiatCurrency,
@@ -313,31 +339,31 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: 'multiple-marketplace-listing-result',
-      element: <MultipleMarketplaceListingResult />,
+      element: hostedFeature(<MultipleMarketplaceListingResult />),
     },
     {
       path: 'buy/:currency',
-      element: <Buy />,
+      element: hostedFeature(<Buy />),
     },
     {
       path: 'list-rune/:runeId',
-      element: <ListRuneScreen />,
+      element: hostedFeature(<ListRuneScreen />),
     },
     {
       path: 'unlist-rune/:runeId/utxo',
-      element: <UnlistRuneUtxoScreen />,
+      element: hostedFeature(<UnlistRuneUtxoScreen />),
     },
     {
       path: 'unlist-rune/:runeId',
-      element: <UnlistRuneScreen />,
+      element: hostedFeature(<UnlistRuneScreen />),
     },
     {
       path: 'coinDashboard/:currency',
-      element: <CoinDashboard />,
+      element: hostedFeature(<CoinDashboard />, ['BTC']),
     },
     {
       path: 'signature-request',
-      element: <SignatureRequest />,
+      element: hostedFeature(<SignatureRequest />),
     },
     {
       path: RequestsRoutes.SignMessageRequest,
@@ -345,7 +371,7 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: RequestsRoutes.SignRuneDelistingMessage,
-      element: <SignRuneDelistingMessage />,
+      element: hostedFeature(<SignRuneDelistingMessage />),
     },
     {
       path: RoutePaths.SendOrdinal,
@@ -357,11 +383,11 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: RoutePaths.TransferRunesRequest,
-      element: <TransferRunesRequest />,
+      element: hostedFeature(<TransferRunesRequest />),
     },
     {
       path: 'send-brc20-one-step',
-      element: <SendBrc20OneStepScreen />,
+      element: hostedFeature(<SendBrc20OneStepScreen />),
     },
     {
       path: RoutePaths.LockCountdown,
@@ -369,7 +395,7 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: 'confirm-nft-tx/:id',
-      element: <ConfirmNftTransaction />,
+      element: hostedFeature(<ConfirmNftTransaction />),
     },
     {
       path: RequestsRoutes.ConnectionRequest,
@@ -377,11 +403,11 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: RequestsRoutes.MintRune,
-      element: <MintRune />,
+      element: hostedFeature(<MintRune />),
     },
     {
       path: RequestsRoutes.EtchRune,
-      element: <EtchRune />,
+      element: hostedFeature(<EtchRune />),
     },
     {
       path: 'nft-dashboard',
@@ -393,11 +419,11 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: 'send-stx',
-      element: <SendStxScreen />,
+      element: hostedFeature(<SendStxScreen />),
     },
     {
       path: 'send-rune',
-      element: <SendRuneScreen />,
+      element: hostedFeature(<SendRuneScreen />),
     },
     {
       path: 'nft-dashboard/hidden',
@@ -405,15 +431,15 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: 'nft-dashboard/rare-sats-bundle',
-      element: <RareSatsBundle />,
+      element: hostedFeature(<RareSatsBundle />),
     },
     {
       path: 'nft-dashboard/ordinals-collection/:id/:from?',
-      element: <OrdinalsCollection />,
+      element: hostedFeature(<OrdinalsCollection />),
     },
     {
       path: 'nft-dashboard/nft-detail/:id',
-      element: <NftDetailScreen />,
+      element: hostedFeature(<NftDetailScreen />),
     },
     {
       path: 'nft-dashboard/ordinal-detail/:id/:from?',
@@ -421,15 +447,15 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: 'nft-dashboard/rare-sats-detail',
-      element: <RareSatsDetailScreen />,
+      element: hostedFeature(<RareSatsDetailScreen />),
     },
     {
       path: 'nft-dashboard/nft-detail/:id/send-nft',
-      element: <SendNft />,
+      element: hostedFeature(<SendNft />),
     },
     {
       path: 'nft-dashboard/nft-collection/:id/:from?',
-      element: <NftCollection />,
+      element: hostedFeature(<NftCollection />),
     },
     {
       path: 'nft-dashboard/ordinal-detail/:id/send-ordinal',
@@ -437,11 +463,11 @@ const authedRoutesWithSidebar: RouteObject = {
     },
     {
       path: 'nft-dashboard/supported-rarity-scale',
-      element: <SupportedRarities />,
+      element: hostedFeature(<SupportedRarities />),
     },
     {
       path: 'connect-hardware-wallet',
-      element: <ConnectHardwareWallet />,
+      element: hostedFeature(<ConnectHardwareWallet />),
     },
   ],
 };

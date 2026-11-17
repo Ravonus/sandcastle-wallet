@@ -7,7 +7,7 @@ import { useDispatch } from 'react-redux';
 
 const useFeeMultipliers = () => {
   const { network } = useWalletSelector();
-  const xverseApi = getXverseApiClient(network.type);
+  const xverseApi = getXverseApiClient(network);
   const dispatch = useDispatch();
 
   const fetchFeeMultiplierData = async (): Promise<AppInfo> => {

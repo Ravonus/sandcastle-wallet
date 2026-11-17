@@ -11,11 +11,11 @@ import { InvalidParamsError, handleRetries } from '@utils/query';
  */
 const useInscriptionCollectionMarketData = (collectionId?: string | null) => {
   const { network } = useWalletSelector();
-  const collectionMarketData = async (): Promise<CollectionMarketDataResponse | undefined> => {
+  const collectionMarketData = async (): Promise<CollectionMarketDataResponse | null> => {
     if (!collectionId) {
       throw new InvalidParamsError('collectionId is required');
     }
-    return getCollectionMarketData(network.type, collectionId);
+    return (await getCollectionMarketData(network.type, collectionId)) ?? null;
   };
 
   return useQuery({

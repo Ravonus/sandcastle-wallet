@@ -17,7 +17,6 @@ import RoutePaths from 'app/routes/paths';
 import BigNumber from 'bignumber.js';
 import type { TFunction } from 'react-i18next';
 import {
-  BTC_TRANSACTION_REGTEST_STATUS_URL,
   BTC_TRANSACTION_SIGNET_STATUS_URL,
   BTC_TRANSACTION_STATUS_URL,
   BTC_TRANSACTION_TESTNET4_STATUS_URL,
@@ -146,7 +145,7 @@ export const getBtcTxStatusUrl = (txId: string, network: SettingsNetwork) => {
     return `${BTC_TRANSACTION_SIGNET_STATUS_URL}${txId}`;
   }
   if (network.type === 'Regtest') {
-    return `${BTC_TRANSACTION_REGTEST_STATUS_URL}${txId}`;
+    return network.btcApiUrl ? `${network.btcApiUrl}/tx/${txId}` : '';
   }
   return `${BTC_TRANSACTION_STATUS_URL}${txId}`;
 };

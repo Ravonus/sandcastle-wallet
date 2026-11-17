@@ -89,10 +89,12 @@ export default function BtcOrBrc20TransactionHistoryItem({
   const { t } = useTranslation('translation', { keyPrefix: 'COIN_DASHBOARD_SCREEN' });
 
   const openBtcTxStatusLink = useCallback(() => {
-    window.open(getBtcTxStatusUrl(transaction.txid, network), '_blank', 'noopener,noreferrer');
-  }, []);
+    const url = getBtcTxStatusUrl(transaction.txid, network);
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  }, [transaction.txid, network]);
 
   const showAccelerateButton =
+    network.type !== 'Regtest' &&
     hasActivatedRBFKey &&
     isBtcTransaction(transaction) &&
     rbf.isTransactionRbfEnabled(transaction, wallet);

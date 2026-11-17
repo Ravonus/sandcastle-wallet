@@ -11,7 +11,7 @@ import FundsRow from './fundsRow';
 
 function RecoverFunds() {
   const { t } = useTranslation('translation', { keyPrefix: 'RESTORE_FUND_SCREEN' });
-  const { hasActivatedOrdinalsKey } = useWalletSelector();
+  const { hasActivatedOrdinalsKey, network } = useWalletSelector();
   const navigate = useNavigate();
 
   const handleGoBackClick = () => {
@@ -39,12 +39,14 @@ function RecoverFunds() {
           description={t('RECOVER_ORDINALS_DESC')}
           onClick={handleOnRestoreOrdinalClick}
         />
-        <FundsRow
-          image={RuneIcon}
-          title={t('RECOVER_RUNES')}
-          description={t('RECOVER_RUNES_DESC')}
-          onClick={onRecoverRunesClick}
-        />
+        {network.type !== 'Regtest' && (
+          <FundsRow
+            image={RuneIcon}
+            title={t('RECOVER_RUNES')}
+            description={t('RECOVER_RUNES_DESC')}
+            onClick={onRecoverRunesClick}
+          />
+        )}
       </Container>
       <BottomTabBar tab="settings" />
     </>

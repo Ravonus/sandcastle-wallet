@@ -15,7 +15,7 @@ const useGetUtxos = (body: GetUtxosRequest | null) => {
       if (!body) {
         throw new Error('Request body is null');
       }
-      const client = getXverseApiClient(network.type);
+      const client = getXverseApiClient(network);
       const response = await client.swaps.getUtxos(body);
       return response;
     },

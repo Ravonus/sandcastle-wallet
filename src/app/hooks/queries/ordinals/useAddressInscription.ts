@@ -10,20 +10,20 @@ import { handleRetries, InvalidParamsError } from '@utils/query';
 const useAddressInscription = (ordinalId?: string, ordinal?: Inscription | null) => {
   const { ordinalsAddress } = useSelectedAccount();
   const { network } = useWalletSelector();
-  const xverseApi = getXverseApiClient(network.type);
+  const xverseApi = getXverseApiClient(network);
 
-  const fetchOrdinals = async (): Promise<Inscription> => {
+  const fetchOrdinals = async (): Promise<Inscription | null> => {
     if (ordinal && ordinal.id === ordinalId) return ordinal;
     if (!ordinalsAddress || !ordinalId) {
       throw new InvalidParamsError('ordinalsAddress and ordinalId are required');
     }
-    return xverseApi.getInscription(ordinalsAddress, ordinalId);
+    return (await xverseApi.getInscription(ordinalsAddress, ordinalId)) ?? null;
   };
 
   return useQuery({
     enabled: !!(ordinal || (ordinalsAddress && ordinalId)),
     retry: handleRetries,
-    queryKey: ['address-inscription', ordinalsAddress, ordinalId],
+    queryKey: ['address-inscription', network, ordinalsAddress, ordinalId],
     queryFn: fetchOrdinals,
   });
 };

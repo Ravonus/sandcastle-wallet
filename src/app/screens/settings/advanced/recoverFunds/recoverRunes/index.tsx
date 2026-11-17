@@ -86,6 +86,7 @@ function RecoverRunes() {
 
   const generateTransactionAndSummary = async (desiredFeeRate: number) => {
     const tx = await runesTransaction.recoverRunes(context, desiredFeeRate);
+    if (!tx) throw new Error('Rune transactions are unavailable on this network.');
     const txSummary = await tx.getSummary();
     const txRuneSummary = await parseSummaryForRunes(context, txSummary, context.network);
     return { transaction: tx, summary: txSummary, runeSummary: txRuneSummary };

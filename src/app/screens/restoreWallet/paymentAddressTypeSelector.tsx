@@ -1,5 +1,6 @@
 import PreferredBtcAddressItem from '@components/preferredBtcAddressItem';
 import useBtcClient from '@hooks/apiClients/useBtcClient';
+import useWalletSelector from '@hooks/useWalletSelector';
 import { sha256 } from '@noble/hashes/sha256';
 import type { BtcPaymentType } from '@secretkeylabs/xverse-core';
 import { getPaymentAccountSummaryForSeedPhrase } from '@secretkeylabs/xverse-core';
@@ -74,6 +75,7 @@ export default function PaymentAddressTypeSelector({
   onContinue,
 }: Props) {
   const btcClient = useBtcClient();
+  const { network } = useWalletSelector();
   const { t } = useTranslation('translation', {
     keyPrefix: 'RESTORE_WALLET_SCREEN.SELECT_ADDRESS_TYPE',
   });
@@ -83,8 +85,34 @@ export default function PaymentAddressTypeSelector({
 
   const { data, isLoading } = useQuery({
     // eslint-disable-next-line @tanstack/query/exhaustive-deps
-    queryKey: ['onboardingBtcAddressBalance', sha256(seedPhrase.substring(0, 20)).toString()],
-    queryFn: () => getPaymentAccountSummaryForSeedPhrase(btcClient, seedPhrase, 'Mainnet', 10),
+    queryKey: [
+      'onboardingBtcAddressBalance',
+      network,
+      sha256(seedPhrase.substring(0, 20)).toString(),
+    ],
+    queryFn: async () => {
+      if (network.type === 'Regtest') {
+        if (network.btcApiUrl) {
+          try {
+            return await getPaymentAccountSummaryForSeedPhrase(
+              btcClient,
+              seedPhrase,
+              network.type,
+              10,
+            );
+          } catch {
+            // An unavailable endpoint should not block restoring a local wallet.
+          }
+        }
+        return {
+          accountCount: 0n,
+          nestedTotalSats: 0n,
+          nativeTotalSats: 0n,
+          hasMoreAccounts: false,
+        };
+      }
+      return getPaymentAccountSummaryForSeedPhrase(btcClient, seedPhrase, network.type, 10);
+    },
   });
 
   useEffect(() => {

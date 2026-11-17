@@ -15,7 +15,7 @@ import useWalletSelector from './useWalletSelector';
 export default function useAvatarCleanup() {
   const dispatch = useDispatch();
   const { avatarIds, network, accountsList } = useWalletSelector();
-  const xverseApi = getXverseApiClient(network.type);
+  const xverseApi = getXverseApiClient(network);
   const stacksApiClient = getStacksApiClient(network.type);
 
   const checkAndRemoveInvalidAvatar = useCallback(
@@ -28,7 +28,7 @@ export default function useAvatarCleanup() {
           avatar.inscription.id,
         );
 
-        if (!isOrdinalOwnedByAccount(inscription, account)) {
+        if (!(inscription && isOrdinalOwnedByAccount(inscription, account))) {
           dispatch(removeAccountAvatarAction({ address }));
         }
       } else if (avatar?.type === 'stacks') {
@@ -47,11 +47,11 @@ export default function useAvatarCleanup() {
   );
 
   useEffect(() => {
-    if (!avatarIds) return;
+    if (!avatarIds || network.type === 'Regtest') return;
     accountsList
       .filter((account) => !!avatarIds[account.btcAddresses.taproot.address])
       .forEach((account) =>
         checkAndRemoveInvalidAvatar(account, avatarIds[account.btcAddresses.taproot.address]),
       );
-  }, [checkAndRemoveInvalidAvatar, avatarIds, accountsList]);
+  }, [checkAndRemoveInvalidAvatar, avatarIds, accountsList, network.type]);
 }

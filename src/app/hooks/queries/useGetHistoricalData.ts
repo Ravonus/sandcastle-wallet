@@ -7,13 +7,13 @@ import useGetExchangeRate from './useGetExchangeRate';
 const useGetHistoricalData = (id: string, period: HistoricalDataParamsPeriod) => {
   const xverseApi = useXverseApi();
 
-  const { fiatCurrency } = useWalletSelector();
+  const { fiatCurrency, network } = useWalletSelector();
   const { data: exchangeRates } = useGetExchangeRate('USD');
   const exchangeRate = exchangeRates ? Number(exchangeRates[fiatCurrency]) : 1;
 
   return useQuery({
     // eslint-disable-next-line
-    queryKey: ['get-historical-data', id, period, fiatCurrency],
+    queryKey: ['get-historical-data', network.type, id, period, fiatCurrency],
     queryFn: () => xverseApi.getHistoricalData(id, period, exchangeRate),
     staleTime: 10 * 60 * 1000, // 10 minutes
   });

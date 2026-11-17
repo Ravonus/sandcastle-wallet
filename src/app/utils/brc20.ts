@@ -24,12 +24,12 @@ export type ExecuteBrc20TransferState = {
 };
 
 export const getFeeValuesForBrc20OneStepTransfer = ({
-  commitChainFee,
-  revealChainFee,
-  transferChainFee,
-  revealServiceFee,
-  transferUtxoValue,
-}: TransferEstimateResult['valueBreakdown']) => {
+  commitChainFee = 0,
+  revealChainFee = 0,
+  transferChainFee = 0,
+  revealServiceFee = 0,
+  transferUtxoValue = 0,
+}: Partial<NonNullable<TransferEstimateResult>['valueBreakdown']> = {}) => {
   const txFee = new BigNumber(commitChainFee).plus(revealChainFee).plus(transferChainFee);
   const inscriptionFee = new BigNumber(revealServiceFee);
   const totalFee = new BigNumber(txFee).plus(inscriptionFee);

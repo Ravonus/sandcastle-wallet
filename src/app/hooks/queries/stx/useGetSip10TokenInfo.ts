@@ -11,7 +11,7 @@ const useGetSip10TokenInfo = ({
 }) => {
   const { network, fiatCurrency: defaultFiatCurrency } = useWalletSelector();
 
-  const xverseApiClient = getXverseApiClient(network.type);
+  const xverseApiClient = getXverseApiClient(network);
 
   const fetchTokensInfo = async () => {
     if (principal) {

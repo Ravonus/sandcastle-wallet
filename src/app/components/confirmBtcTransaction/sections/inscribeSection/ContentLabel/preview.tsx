@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 
 import useWalletSelector from '@hooks/useWalletSelector';
-import { XVERSE_ORDIVIEW_URL } from '@utils/constants';
+import inscriptionContentUrl from '@utils/inscriptionContentUrl';
 import { ContentType } from './common';
 
 const MIN_FONT_SIZE = 9;
@@ -136,10 +136,7 @@ function Preview({
     // workaround to show the inscription preview for an already inscribed inscription
     if (inscriptionId) {
       preview = (
-        <PreviewImg
-          src={`${XVERSE_ORDIVIEW_URL(network.type)}/content/${inscriptionId}`}
-          alt="Inscription"
-        />
+        <PreviewImg src={inscriptionContentUrl(network, inscriptionId)} alt="Inscription" />
       );
     } else {
       preview = <PreviewImg src={`data:${contentTypeRaw};base64,${content}`} alt="Inscription" />;

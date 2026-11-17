@@ -94,10 +94,16 @@ export function ChangeFiatCurrencyAction(
   };
 }
 
-export function ChangeNetworkAction(network: SettingsNetwork): actions.ChangeNetwork {
+export function ChangeNetworkAction(
+  network: SettingsNetwork,
+  accountsList?: Account[],
+  exposeLocalRegtestConnector?: boolean,
+): actions.ChangeNetwork {
   return {
     type: actions.ChangeNetworkKey,
     network,
+    accountsList,
+    exposeLocalRegtestConnector,
   };
 }
 

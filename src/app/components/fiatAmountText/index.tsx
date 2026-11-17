@@ -1,3 +1,4 @@
+import useWalletSelector from '@hooks/useWalletSelector';
 import { currencySymbolMap, type SupportedCurrency } from '@secretkeylabs/xverse-core';
 import BigNumber from 'bignumber.js';
 import { NumericFormat } from 'react-number-format';
@@ -12,6 +13,14 @@ type Props = {
 };
 
 function FiatAmountText({ className, fiatAmount, fiatCurrency, dataTestId, withoutSuffix }: Props) {
+  const { network } = useWalletSelector();
+  if (network.type === 'Regtest')
+    return (
+      <span className={className} data-testid={dataTestId}>
+        —
+      </span>
+    );
+
   if (!fiatAmount || !fiatCurrency) {
     return null;
   }

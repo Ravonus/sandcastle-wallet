@@ -12,7 +12,7 @@ const PAGE_SIZE = 30;
 const useAddressCollectionInscriptions = (collectionId?: string) => {
   const { ordinalsAddress } = useSelectedAccount();
   const { network } = useWalletSelector();
-  const xverseApi = getXverseApiClient(network.type);
+  const xverseApi = getXverseApiClient(network);
   const { starredCollectibleIds } = useWalletSelector();
   const starredIds = starredCollectibleIds[ordinalsAddress]?.map(({ id }) => id);
 
@@ -32,7 +32,7 @@ const useAddressCollectionInscriptions = (collectionId?: string) => {
   };
 
   return useInfiniteQuery(
-    ['address-collection-inscriptions', ordinalsAddress, collectionId, starredIds],
+    ['address-collection-inscriptions', network, ordinalsAddress, collectionId, starredIds],
     getCollectionInscriptionsByAddress,
     {
       enabled: !!(collectionId && ordinalsAddress),
@@ -45,7 +45,7 @@ const useAddressCollectionInscriptions = (collectionId?: string) => {
         if (currentLength < lastpage.total) {
           return currentLength;
         }
-        return false;
+        return undefined;
       },
       staleTime: 60 * 1000, // 1 min
       keepPreviousData: true,

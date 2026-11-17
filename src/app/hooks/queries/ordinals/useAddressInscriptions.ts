@@ -12,7 +12,7 @@ const PAGE_SIZE = 30;
 const useAddressInscriptions = (showHiddenOnly?: boolean) => {
   const { ordinalsAddress } = useSelectedAccount();
   const { network } = useWalletSelector();
-  const xverseApi = getXverseApiClient(network.type);
+  const xverseApi = getXverseApiClient(network);
   const { hiddenCollectibleIds, starredCollectibleIds } = useWalletSelector();
   const starredIds = starredCollectibleIds[ordinalsAddress]?.map(({ id }) => id);
 
@@ -30,6 +30,7 @@ const useAddressInscriptions = (showHiddenOnly?: boolean) => {
   return useInfiniteQuery(
     [
       'address-inscriptions',
+      network,
       ordinalsAddress,
       Object.keys(hiddenCollectibleIds[ordinalsAddress] ?? {}),
       starredIds,
@@ -47,7 +48,7 @@ const useAddressInscriptions = (showHiddenOnly?: boolean) => {
         if (currentLength < lastpage.total) {
           return currentLength;
         }
-        return false;
+        return undefined;
       },
       staleTime: 60 * 1000, // 1 min
     },

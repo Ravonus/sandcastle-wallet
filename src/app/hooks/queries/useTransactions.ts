@@ -34,11 +34,12 @@ export default function useTransactions(
     | Brc20HistoryTransactionData[]
     | APIGetRunesActivityForAddressResponse
   > => {
+    if (network.type === 'Regtest' && (coinType !== 'BTC' || !network.btcApiUrl)) return [];
     if (coinType === 'FT' && brc20Token) {
       return getBrc20History(network.type, selectedAccount.ordinalsAddress, brc20Token);
     }
     if (coinType === 'FT' && runeToken) {
-      return getXverseApiClient(network.type).getRuneTxHistory(
+      return getXverseApiClient(network).getRuneTxHistory(
         selectedAccount.ordinalsAddress,
         runeToken,
         0,
@@ -64,7 +65,14 @@ export default function useTransactions(
   };
 
   return useQuery({
-    queryKey: ['transactions', coinType, brc20Token, runeToken],
+    queryKey: [
+      'transactions',
+      network,
+      selectedAccount.btcAddress,
+      coinType,
+      brc20Token,
+      runeToken,
+    ],
     queryFn: fetchTransactions,
     staleTime: 10 * 1000, // 10 secs
     retry: handleRetries,

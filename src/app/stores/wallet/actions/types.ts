@@ -65,6 +65,7 @@ export interface WalletState {
   selectedAccountType: AccountType;
   btcPaymentAddressType: BtcPaymentType;
   network: SettingsNetwork; // currently selected network urls and type
+  exposeLocalRegtestConnector: boolean;
   savedNetworks: SettingsNetwork[]; // previously set network urls for type
   encryptedSeed: string;
   fiatCurrency: SupportedCurrency;
@@ -136,6 +137,8 @@ export interface ChangeFiatCurrency {
 export interface ChangeNetwork {
   type: typeof ChangeNetworkKey;
   network: SettingsNetwork;
+  accountsList?: Account[];
+  exposeLocalRegtestConnector?: boolean;
 }
 
 export interface ChangeBtcPaymentAddressType {

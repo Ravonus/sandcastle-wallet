@@ -8,21 +8,30 @@ import { handleRetries } from '@utils/query';
 const useStacksCollectibles = (showHiddenOnly?: boolean) => {
   const { stxAddress } = useSelectedAccount();
   const selectedNetwork = useNetworkSelector();
-  const { hiddenCollectibleIds, starredCollectibleIds } = useWalletSelector();
+  const { hiddenCollectibleIds, starredCollectibleIds, network } = useWalletSelector();
   const hiddenIds = Object.keys(hiddenCollectibleIds[stxAddress] ?? {});
   const starredIds = starredCollectibleIds[stxAddress]?.map(({ id }) => id);
 
   const fetchNftCollections = (): Promise<StacksCollectionList> =>
-    getNftCollections(stxAddress, selectedNetwork, {
-      hiddenCollectibleIds: hiddenIds,
-      starredCollectibleIds: starredIds,
-      showHiddenOnly,
-    });
+    network.type === 'Regtest'
+      ? Promise.resolve({ total_nfts: 0, results: [] })
+      : getNftCollections(stxAddress, selectedNetwork, {
+          hiddenCollectibleIds: hiddenIds,
+          starredCollectibleIds: starredIds,
+          showHiddenOnly,
+        });
 
   return useQuery({
     enabled: !!stxAddress,
     retry: handleRetries,
-    queryKey: ['nft-collection-data', stxAddress, hiddenIds, starredIds, showHiddenOnly],
+    queryKey: [
+      'nft-collection-data',
+      network.type,
+      stxAddress,
+      hiddenIds,
+      starredIds,
+      showHiddenOnly,
+    ],
     queryFn: fetchNftCollections,
     staleTime: 5 * 60 * 1000, // 5mins
     keepPreviousData: true,

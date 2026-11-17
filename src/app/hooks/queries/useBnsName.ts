@@ -5,18 +5,19 @@ import useWalletSelector from '../useWalletSelector';
 
 export const useBnsName = (walletAddress: string) => {
   const network = useNetworkSelector();
+  const { network: bitcoin } = useWalletSelector();
   const [bnsName, setBnsName] = useState('');
 
   useEffect(() => {
     (async () => {
-      if (walletAddress) {
+      if (bitcoin.type !== 'Regtest' && walletAddress) {
         const name = await getBnsName(walletAddress, network);
         setBnsName(name ?? '');
       } else {
         setBnsName('');
       }
     })();
-  }, [walletAddress, network]);
+  }, [walletAddress, network, bitcoin.type]);
 
   return bnsName;
 };
@@ -32,7 +33,7 @@ export const useBnsResolver = (
 
   useEffect(() => {
     (async () => {
-      if (currencyType !== 'BTC') {
+      if (network.type !== 'Regtest' && currencyType !== 'BTC') {
         if (!validateStxAddress({ stxAddress: recipientAddress, network: network.type })) {
           const address = await fetchAddressOfBnsName(
             recipientAddress.toLocaleLowerCase(),

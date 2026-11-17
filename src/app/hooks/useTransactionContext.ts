@@ -1,6 +1,6 @@
+import getBitcoinClients from '@common/utils/bitcoinClients';
 import { btcTransaction, UtxoCache, type BtcPaymentType } from '@secretkeylabs/xverse-core';
 import { useEffect, useMemo } from 'react';
-import useBtcClient from './apiClients/useBtcClient';
 import useSeedVault from './useSeedVault';
 import useSelectedAccount from './useSelectedAccount';
 import useWalletSelector from './useWalletSelector';
@@ -9,7 +9,7 @@ const useTransactionContext = (overridePayAddressType?: BtcPaymentType) => {
   const selectedAccount = useSelectedAccount(overridePayAddressType);
   const { network } = useWalletSelector();
   const seedVault = useSeedVault();
-  const btcClient = useBtcClient();
+  const { bitcoin: btcClient, regtestOrdinals } = getBitcoinClients(network);
 
   // TODO: we can remove this useEffect after a while once the localstorage cache clearance has propagated
   useEffect(() => {
@@ -25,6 +25,7 @@ const useTransactionContext = (overridePayAddressType?: BtcPaymentType) => {
       },
       network: network.type,
       electrsApi: btcClient,
+      regtestOrdinals,
     });
     localStorageCache.clearAllCaches();
   }, []);
@@ -54,8 +55,9 @@ const useTransactionContext = (overridePayAddressType?: BtcPaymentType) => {
         },
         network: network.type,
         electrsApi: btcClient,
+        regtestOrdinals,
       }),
-    [network.type, btcClient],
+    [network.type, btcClient, regtestOrdinals],
   );
 
   const transactionContext = useMemo(() => {

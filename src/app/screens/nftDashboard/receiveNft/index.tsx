@@ -2,6 +2,7 @@ import stacksIcon from '@assets/img/dashboard/stx_icon.svg';
 import ordinalsIcon from '@assets/img/nftDashboard/ordinals_icon.svg';
 import ReceiveCardComponent from '@components/receiveCardComponent';
 import useSelectedAccount from '@hooks/useSelectedAccount';
+import useWalletSelector from '@hooks/useWalletSelector';
 import { Plus } from '@phosphor-icons/react';
 import Button from '@ui-library/button';
 import Sheet from '@ui-library/sheet';
@@ -67,6 +68,7 @@ function ReceiveNftModal({ visible, onClose }: Props) {
   const { t } = useTranslation('translation', { keyPrefix: 'NFT_DASHBOARD_SCREEN' });
   const navigate = useNavigate();
   const selectedAccount = useSelectedAccount();
+  const { network } = useWalletSelector();
   const { stxAddress, ordinalsAddress } = selectedAccount;
   const [isReceivingAddressesVisible, setIsReceivingAddressesVisible] = useState(
     !isLedgerAccount(selectedAccount),
@@ -123,7 +125,7 @@ function ReceiveNftModal({ visible, onClose }: Props) {
         />
       )}
 
-      {stxAddress && (
+      {network.type !== 'Regtest' && stxAddress && (
         <ReceiveCardComponent
           title={t('STACKS_NFT')}
           address={stxAddress}

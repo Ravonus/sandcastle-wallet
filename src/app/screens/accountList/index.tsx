@@ -68,6 +68,7 @@ function AccountList(): JSX.Element {
   const hideListActions = Boolean(params.get('hideListActions')) || false;
 
   const displayedAccountsList = useMemo(() => {
+    if (network.type === 'Regtest') return accountsList;
     const networkLedgerAccounts = filterLedgerAccountsByNetwork(ledgerAccountsList, network.type);
     const networkKeystoneAccounts = filterKeystoneAccountsByNetwork(
       keystoneAccountsList,
@@ -127,14 +128,21 @@ function AccountList(): JSX.Element {
               title={t('NEW_ACCOUNT')}
               variant="secondary"
             />
-            <Button
-              icon={
-                <img src={connectHwIcon} width={16} height={16} alt="hardware wallet connection" />
-              }
-              onClick={() => navigate('/connect-hardware-wallet')}
-              title={t('NEW_HARDWARE_WALLET')}
-              variant="secondary"
-            />
+            {network.type !== 'Regtest' && (
+              <Button
+                icon={
+                  <img
+                    src={connectHwIcon}
+                    width={16}
+                    height={16}
+                    alt="hardware wallet connection"
+                  />
+                }
+                onClick={() => navigate('/connect-hardware-wallet')}
+                title={t('NEW_HARDWARE_WALLET')}
+                variant="secondary"
+              />
+            )}
           </ButtonsWrapper>
         ) : null}
       </Container>

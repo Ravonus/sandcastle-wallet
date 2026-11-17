@@ -1,4 +1,5 @@
 import { usePermissions } from '@components/permissionsManager';
+import useWalletSelector from '@hooks/useWalletSelector';
 import { CaretRight } from '@phosphor-icons/react';
 import {
   getAppIconFromWebManifest,
@@ -80,9 +81,13 @@ interface Props {
 
 export default function ClientApp({ connectedApp, setSelectedApp }: Props) {
   const theme = useTheme();
+  const { network } = useWalletSelector();
   const { data: appDetails } = useQuery({
-    queryKey: ['websiteInfo', connectedApp.client.id],
-    queryFn: () => getWebsiteInfo(connectedApp.client.id),
+    queryKey: ['websiteInfo', network.type, connectedApp.client.id],
+    queryFn: () =>
+      network.type === 'Regtest'
+        ? { name: nameFromOrigin(connectedApp.client.origin), icon: '' }
+        : getWebsiteInfo(connectedApp.client.id),
     placeholderData: {
       name: nameFromOrigin(connectedApp.client.origin),
       icon: '',
