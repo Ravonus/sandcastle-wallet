@@ -6,7 +6,6 @@ import { getPaymentAccountSummaryForSeedPhrase } from '@secretkeylabs/xverse-cor
 import { useQuery } from '@tanstack/react-query';
 import Button from '@ui-library/button';
 import { StyledP } from '@ui-library/common.styled';
-import { InputFeedback } from '@ui-library/inputFeedback';
 import Spinner from '@ui-library/spinner';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -61,17 +60,6 @@ const ButtonContainer = styled.div((props) => ({
   marginBottom: props.theme.space.xxl,
 }));
 
-const LearnMoreLink = styled.a((props) => ({
-  marginTop: props.theme.space.xs,
-  cursor: 'pointer',
-  div: {
-    transition: 'color 0.1s ease',
-    '&:hover': {
-      color: props.theme.colors.white_0,
-    },
-  },
-}));
-
 type Props = {
   seedPhrase: string;
   selectedType: BtcPaymentType;
@@ -124,13 +112,6 @@ export default function PaymentAddressTypeSelector({
         <StyledP typography="body_m" color="white_200">
           {t('DESCRIPTION')}
         </StyledP>
-        <LearnMoreLink
-          href="https://www.xverse.app/blog/segwit-vs-native-segwit-addresses"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <InputFeedback message={t('LEARN_MORE')} />
-        </LearnMoreLink>
         <SummaryContainer>
           <StyledP typography="body_bold_m" color="white_200">
             {t('ACCOUNT_COUNT', {

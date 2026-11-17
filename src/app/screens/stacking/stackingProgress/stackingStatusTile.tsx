@@ -1,7 +1,6 @@
 import TokenTicker from '@assets/img/dashboard/stx_icon.svg';
 import useStackingData from '@hooks/queries/useStackingData';
 import { type StackingState } from '@secretkeylabs/xverse-core';
-import { XVERSE_STACKING_URL } from '@utils/constants';
 import { useTranslation } from 'react-i18next';
 import {
   BoldText,
@@ -33,12 +32,8 @@ function StackingStatusTile() {
     return 'Pending';
   })();
 
-  const handleOnClick = () => {
-    window.open(XVERSE_STACKING_URL);
-  };
-
   return (
-    <Container onClick={handleOnClick}>
+    <Container>
       <TextContainer>
         <Icon src={TokenTicker} alt="Ticker" />
         <ColumnContainer>

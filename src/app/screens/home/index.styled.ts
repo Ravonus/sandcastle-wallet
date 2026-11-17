@@ -86,44 +86,6 @@ export const VerifyButtonContainer = styled.div((props) => ({
   marginBottom: props.theme.spacing(6),
 }));
 
-export const ModalContent = styled.div((props) => ({
-  padding: props.theme.space.m,
-  paddingTop: 0,
-  paddingBottom: props.theme.space.xl,
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-}));
-
-export const ModalIcon = styled.img((props) => ({
-  marginBottom: props.theme.spacing(10),
-}));
-
-export const ModalTitle = styled.div((props) => ({
-  ...props.theme.typography.body_bold_l,
-  marginBottom: props.theme.space.xs,
-  textAlign: 'center',
-}));
-
-export const ModalDescription = styled.div((props) => ({
-  ...props.theme.typography.body_m,
-  color: props.theme.colors.white_200,
-  marginBottom: props.theme.space.xl,
-  textAlign: 'center',
-}));
-
-export const ModalControlsContainer = styled.div({
-  display: 'flex',
-  width: '100%',
-});
-
-export const ModalButtonContainer = styled.div((props) => ({
-  width: '100%',
-  '&:first-child': {
-    marginRight: props.theme.spacing(6),
-  },
-}));
-
 export const StacksIcon = styled.img({
   width: 24,
   height: 24,

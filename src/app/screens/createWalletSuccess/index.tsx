@@ -1,7 +1,7 @@
 import CheckCircle from '@assets/img/createWalletSuccess/CheckCircle.svg';
 import Extension from '@assets/img/createWalletSuccess/extension.svg';
-import Logo from '@assets/img/createWalletSuccess/logo.svg';
 import Pin from '@assets/img/createWalletSuccess/pin.svg';
+import Logo from '@assets/img/sandcastle/icon.svg';
 import Button from '@ui-library/button';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -93,12 +93,12 @@ function CreateWalletSuccess(): JSX.Element {
           <Image src={Extension} />
         </RowContainer>
         <RowContainer>
-          <InstructionsText>{`2. ${t('SEARCH_XVERSE')}`}</InstructionsText>
+          <InstructionsText>{`2. ${t('SEARCH_SANDCASTLE')}`}</InstructionsText>
           <Image src={Pin} />
         </RowContainer>
         <RowContainer>
           <InstructionsText>{`3. ${t('CLICK')}`}</InstructionsText>
-          <Image src={Logo} />
+          <Image src={Logo} width={16} height={16} alt="Sandcastle Wallet" />
           <InstructionsText>{t('OPEN_WALLET')}</InstructionsText>
         </RowContainer>
       </InstructionsContainer>

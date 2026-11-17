@@ -1,4 +1,4 @@
-import logo from '@assets/img/xverse_logo.svg';
+import logo from '@assets/img/sandcastle/icon.svg';
 import ErrorDisplay from '@components/errorDisplay';
 import rootStore from '@stores/index';
 import { useEffect, useState } from 'react';
@@ -37,7 +37,7 @@ function StartupLoadingScreen(): React.ReactNode {
 
   return (
     <Container>
-      <img src={logo} width={100} alt="logo" />
+      <img src={logo} width={100} alt="Sandcastle Wallet" />
     </Container>
   );
 }

@@ -28,7 +28,6 @@ import {
   ConfirmationText,
   CreateAnotherAccountContainer,
   CreateMultipleAccountsText,
-  CustomLink,
   EndScreenContainer,
   EndScreenTextContainer,
   ImportBeforeStartContainer,
@@ -50,11 +49,6 @@ import {
   TogglerText,
   WarningIcon,
 } from './index.styled';
-
-const LINK_TO_LEDGER_ACCOUNT_ISSUE_GUIDE =
-  'https://support.xverse.app/hc/en-us/articles/17898446492557';
-const LINK_TO_LEDGER_PASSPHRASE_GUIDE =
-  'https://support.xverse.app/hc/en-us/articles/17901278165773';
 
 type Props = {
   isConnectSuccess: boolean;
@@ -191,49 +185,19 @@ function Steps({
             <ImportBeforeStartText>
               {t('LEDGER_BEFORE_GETTING_STARTED.IMPORTANT_WARNING.TEXT_1')}
               <br />
-              <CustomLink
-                href={LINK_TO_LEDGER_ACCOUNT_ISSUE_GUIDE}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t('LEARN_MORE')}
-              </CustomLink>
               <br />
               <br />
-              {t('LEDGER_BEFORE_GETTING_STARTED.IMPORTANT_WARNING.TEXT_2')}{' '}
-              <CustomLink
-                href={LINK_TO_LEDGER_PASSPHRASE_GUIDE}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t('LEDGER_BEFORE_GETTING_STARTED.IMPORTANT_WARNING.PASSPHRASE_FOR_ORDINALS')}
-              </CustomLink>
-              .
+              {t('LEDGER_BEFORE_GETTING_STARTED.IMPORTANT_WARNING.TEXT_2')}
               <br />
               <br />
               {t('LEDGER_BEFORE_GETTING_STARTED.IMPORTANT_WARNING.TEXT_3')}
             </ImportBeforeStartText>
           ) : (
             <ImportBeforeStartText>
-              {t('LEDGER_BEFORE_GETTING_STARTED.IMPORTANT_WARNING.TEXT_1')}{' '}
-              <CustomLink
-                href={LINK_TO_LEDGER_ACCOUNT_ISSUE_GUIDE}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t('LEARN_MORE')}
-              </CustomLink>
+              {t('LEDGER_BEFORE_GETTING_STARTED.IMPORTANT_WARNING.TEXT_1')}
               <br />
               <br />
-              {t('LEDGER_BEFORE_GETTING_STARTED.IMPORTANT_WARNING.TEXT_2')}{' '}
-              <CustomLink
-                href={LINK_TO_LEDGER_PASSPHRASE_GUIDE}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t('LEDGER_BEFORE_GETTING_STARTED.IMPORTANT_WARNING.PASSPHRASE_FOR_ORDINALS')}
-              </CustomLink>
-              .
+              {t('LEDGER_BEFORE_GETTING_STARTED.IMPORTANT_WARNING.TEXT_2')}
             </ImportBeforeStartText>
           )}
           <TogglerContainer>

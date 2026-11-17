@@ -1,4 +1,4 @@
-import xverseLogoIcon from '@assets/img/full_logo_horizontal.svg';
+import walletLogo from '@assets/img/sandcastle/wordmark.svg';
 import VerticalTabBar from '@components/tabBarVertical';
 import useWalletSelector from '@hooks/useWalletSelector';
 import { StyledP } from '@ui-library/common.styled';
@@ -79,7 +79,7 @@ const FullScreenHeader = styled.div((props) => ({
   },
 }));
 
-const XverseLogo = styled.img({
+const WalletLogo = styled.img({
   width: '99px',
   height: '18px',
 });
@@ -116,7 +116,7 @@ function ScreenContainer({ isSidebarVisible = false }: { isSidebarVisible?: bool
       <ContentContainer>
         {isInOption && (
           <FullScreenHeader>
-            <XverseLogo src={xverseLogoIcon} />
+            <WalletLogo src={walletLogo} alt="Sandcastle Wallet" />
           </FullScreenHeader>
         )}
         <RouteContainer>

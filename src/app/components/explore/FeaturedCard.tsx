@@ -1,5 +1,3 @@
-import { AnalyticsEvents } from '@secretkeylabs/xverse-core';
-import { trackMixPanel } from '@utils/mixpanel';
 import styled from 'styled-components';
 
 const Card = styled.button`
@@ -48,23 +46,7 @@ export interface FeaturedCardProps {
 
 function FeaturedCard({ url, banner, description }: FeaturedCardProps) {
   return (
-    <Card
-      onClick={() => {
-        trackMixPanel(
-          AnalyticsEvents.ClickApp,
-          {
-            link: url,
-            section: 'featured',
-            source: 'web-extension',
-          },
-          { send_immediately: true },
-          () => {
-            window.open(url, '_blank');
-          },
-          'explore-app',
-        );
-      }}
-    >
+    <Card onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}>
       <CardImage src={banner} />
       <CardText>{description}</CardText>
     </Card>

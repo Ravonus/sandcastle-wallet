@@ -6,11 +6,10 @@ import useWalletSelector from '@hooks/useWalletSelector';
 import { animated, useTransition } from '@react-spring/web';
 import { AddressPurpose } from '@sats-connect/core';
 import SelectAccount from '@screens/connect/selectAccount';
-import { AnalyticsEvents, getAppIconFromWebManifest } from '@secretkeylabs/xverse-core';
+import { getAppIconFromWebManifest } from '@secretkeylabs/xverse-core';
 import Button from '@ui-library/button';
 import { StickyHorizontalSplitButtonContainer } from '@ui-library/common.styled';
 import Spinner from '@ui-library/spinner';
-import { trackMixPanel } from '@utils/mixpanel';
 import RoutePaths from 'app/routes/paths';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -59,17 +58,7 @@ function BtcSelectAddressScreen() {
   const confirmCallback = async () => {
     setLoading(true);
     await sendApprovedResponse();
-    trackMixPanel(
-      AnalyticsEvents.AppConnected,
-      {
-        requestedAddress: purposes,
-        wallet_type: selectedAccount?.accountType || 'software',
-      },
-      { send_immediately: true },
-      () => {
-        window.close();
-      },
-    );
+    window.close();
   };
 
   const cancelCallback = () => {

@@ -4,21 +4,12 @@ import type { Provider } from '@sats-connect/core';
 import type { NetworkType } from '@secretkeylabs/xverse-core';
 
 export const GAMMA_URL = 'https://gamma.io/';
-export const TERMS_LINK = 'https://xverse.app/terms';
-export const PRIVACY_POLICY_LINK = 'https://xverse.app/privacy';
-export const SUPPORT_LINK = 'https://support.xverse.app/hc/en-us';
-export const STORE_LISTING =
-  'https://chromewebstore.google.com/detail/xverse-wallet/idnnbdplmphpflfnlkomgpfbpcgelopg';
-export const BLOG_LINK = 'https:/xverse.app/blog';
-export const SUPPORT_EMAIL = 'support@xverse.app';
 export const BTC_TRANSACTION_STATUS_URL = 'https://mempool.space/tx/';
 export const BTC_TRANSACTION_TESTNET_STATUS_URL = 'https://mempool.space/testnet/tx/';
 export const BTC_TRANSACTION_TESTNET4_STATUS_URL = 'https://mempool.space/testnet4/tx/';
 export const BTC_TRANSACTION_SIGNET_STATUS_URL = 'https://mempool.space/signet/tx/';
 export const BTC_TRANSACTION_REGTEST_STATUS_URL = 'https://mempool.bitcoin.regtest.hiro.so/tx/';
 export const TRANSACTION_STATUS_URL = 'https://explorer.stacks.co/txid/';
-export const XVERSE_STACKING_URL = 'https://wallet.xverse.app/earn/stacking';
-export const XVERSE_EXPLORE_URL = 'https://wallet.xverse.app/explore';
 export const XVERSE_POOL_ADDRESS = 'SPXVRSEH2BKSXAEJ00F1BY562P45D5ERPSKR4Q33';
 
 const ordiViewSuffixMap: Record<NetworkType, string> = {
@@ -35,8 +26,6 @@ export const TRANSAC_URL = 'https://global.transak.com';
 export const TRANSAC_API_KEY = process.env.TRANSAC_API_KEY;
 export const MOON_PAY_URL = 'https://buy.moonpay.com';
 export const MOON_PAY_API_KEY = process.env.MOON_PAY_API_KEY;
-export const MIX_PANEL_TOKEN = process.env.MIX_PANEL_TOKEN;
-export const MIX_PANEL_EXPLORE_APP_TOKEN = process.env.MIX_PANEL_EXPLORE_APP_TOKEN;
 
 export const MAGIC_EDEN_RUNES_URL = 'https://magiceden.io/runes';
 

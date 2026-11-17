@@ -1,7 +1,5 @@
-import dashboardIcon from '@assets/img/dashboard-icon.svg';
 import ArrowSwap from '@assets/img/icons/ArrowSwap.svg';
 import AccountHeaderComponent from '@components/accountHeader';
-import BottomModal from '@components/bottomModal';
 import BottomBar from '@components/tabBar';
 import TokenTileLoader from '@components/tokenTile/loader';
 import {
@@ -24,7 +22,6 @@ import useStxWalletData from '@hooks/queries/useStxWalletData';
 import useSupportedCoinRates from '@hooks/queries/useSupportedCoinRates';
 import useAvatarCleanup from '@hooks/useAvatarCleanup';
 import useHasFeature from '@hooks/useHasFeature';
-import useNotificationBanners from '@hooks/useNotificationBanners';
 import useSelectedAccount from '@hooks/useSelectedAccount';
 import useTrackMixPanelPageViewed from '@hooks/useTrackMixPanelPageViewed';
 import useWalletSelector from '@hooks/useWalletSelector';
@@ -38,37 +35,27 @@ import {
   type FungibleTokenWithStates,
 } from '@secretkeylabs/xverse-core';
 import {
-  changeShowDataCollectionAlertAction,
   setBrc20ManageTokensAction,
   setRunesManageTokensAction,
   setSip10ManageTokensAction,
   setSpamTokenAction,
 } from '@stores/wallet/actions/actionCreators';
-import Button from '@ui-library/button';
 import SnackBar from '@ui-library/snackBar';
 import { ANIMATION_EASING, type CurrencyTypes } from '@utils/constants';
 import { isInOptions, isKeystoneAccount, isLedgerAccount } from '@utils/helper';
-import { optInMixPanel, optOutMixPanel, trackMixPanel } from '@utils/mixpanel';
+import { trackMixPanel } from '@utils/mixpanel';
 import { sortFtByFiatBalance } from '@utils/tokens';
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from 'styled-components';
 import SquareButton from '../../components/squareButton';
 import AnnouncementModal from './announcementModal';
 import BalanceCard from './balanceCard';
-import BannerCarousel from './bannerCarousel';
 import {
   ColumnContainer,
   Container,
-  ModalButtonContainer,
-  ModalContent,
-  ModalControlsContainer,
-  ModalDescription,
-  ModalIcon,
-  ModalTitle,
   RowButtonContainer,
   StyledDivider,
   StyledTokenTile,
@@ -83,9 +70,7 @@ function Home() {
   });
   const selectedAccount = useSelectedAccount();
   const { stxAddress, btcAddress } = selectedAccount;
-  const { showDataCollectionAlert, hideStx, spamToken, notificationBanners, balanceHidden } =
-    useWalletSelector();
-  const theme = useTheme();
+  const { hideStx, spamToken, balanceHidden } = useWalletSelector();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [openReceiveModal, setOpenReceiveModal] = useState(false);
@@ -98,8 +83,6 @@ function Home() {
     errorUpdateCount: errorUpdateCountBtc,
   } = useSelectedAccountBtcBalance();
   const { btcFiatRate, stxBtcRate } = useSupportedCoinRates();
-  const { data: notificationBannersArr, isFetching: isFetchingNotificationBannersArr } =
-    useNotificationBanners();
 
   // Fetching balances
   const { data: fullSip10CoinsList } = useGetSip10FungibleTokens();
@@ -261,12 +244,6 @@ function Home() {
       sortFtByFiatBalance(a, b, stxBtcRate, btcFiatRate),
     );
 
-  const filteredNotificationBannersArr = notificationBannersArr
-    ? notificationBannersArr.filter((banner) => !notificationBanners[banner.id])
-    : [];
-  const showBannerCarousel =
-    !isFetchingNotificationBannersArr && !!filteredNotificationBannersArr?.length;
-
   const onReceiveModalOpen = () => {
     setOpenReceiveModal(true);
   };
@@ -365,16 +342,6 @@ function Home() {
     navigate('/swap');
   };
 
-  const handleDataCollectionDeny = () => {
-    optOutMixPanel();
-    dispatch(changeShowDataCollectionAlertAction(false));
-  };
-
-  const handleDataCollectionAllow = () => {
-    optInMixPanel(selectedAccount?.masterPubKey);
-    dispatch(changeShowDataCollectionAlertAction(false));
-  };
-
   const isInitialMount = useRef(true);
 
   useEffect(() => {
@@ -388,17 +355,6 @@ function Home() {
     from: { opacity: isInitialMount.current ? 1 : 0 },
     enter: { opacity: 1 },
     leave: { opacity: 0 },
-    config: {
-      duration: 400,
-      easing: ANIMATION_EASING,
-    },
-    exitBeforeEnter: true, // This ensures the leave animation completes before the enter animation starts
-  });
-
-  const bannerTransitions = useTransition(showBannerCarousel && !isInitialLoading, {
-    from: { maxHeight: '102px', opacity: isInitialMount.current ? 1 : 0 },
-    enter: { maxHeight: '102px', opacity: 1 },
-    leave: { maxHeight: '0px', opacity: 0 },
     config: {
       duration: 400,
       easing: ANIMATION_EASING,
@@ -444,23 +400,7 @@ function Home() {
           />
         </RowButtonContainer>
 
-        {bannerTransitions((style, item) =>
-          item ? (
-            <animated.div style={style}>
-              <StyledDivider color="white_850" $verticalMargin="m" $noMarginTop />
-              <BannerCarousel items={filteredNotificationBannersArr} />
-              <StyledDivider
-                color="white_850"
-                $verticalMargin="m"
-                $noMarginBottom={filteredNotificationBannersArr.length === 1}
-              />
-            </animated.div>
-          ) : (
-            <animated.div style={style}>
-              <StyledDivider color="elevation3" />
-            </animated.div>
-          ),
-        )}
+        <StyledDivider color="elevation3" />
 
         <ColumnContainer>
           {loaderTransitions((style, loading) =>
@@ -535,44 +475,6 @@ function Home() {
         <AnnouncementModal />
       </Container>
       <BottomBar tab="dashboard" />
-
-      <BottomModal
-        visible={!!showDataCollectionAlert}
-        header=""
-        onClose={handleDataCollectionDeny}
-        overlayStylesOverriding={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        contentStylesOverriding={{
-          width: 'auto',
-          bottom: 'initial',
-          borderRadius: theme.radius(3),
-          margin: `0 ${theme.spacing(8)}px`,
-        }}
-      >
-        <ModalContent>
-          <ModalIcon src={dashboardIcon} alt="analytics" />
-          <ModalTitle>{t('DATA_COLLECTION_POPUP.TITLE')}</ModalTitle>
-          <ModalDescription>{t('DATA_COLLECTION_POPUP.DESCRIPTION')}</ModalDescription>
-          <ModalControlsContainer>
-            <ModalButtonContainer>
-              <Button
-                variant="secondary"
-                title={t('DATA_COLLECTION_POPUP.DENY')}
-                onClick={handleDataCollectionDeny}
-              />
-            </ModalButtonContainer>
-            <ModalButtonContainer>
-              <Button
-                title={t('DATA_COLLECTION_POPUP.ALLOW')}
-                onClick={handleDataCollectionAllow}
-              />
-            </ModalButtonContainer>
-          </ModalControlsContainer>
-        </ModalContent>
-      </BottomModal>
     </>
   );
 }

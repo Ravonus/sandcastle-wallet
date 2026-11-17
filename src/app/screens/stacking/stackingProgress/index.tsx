@@ -28,7 +28,7 @@ function StackingProgress() {
   return (
     <Container>
       <TitleText>{t('STACK_FOR_REWARD')}</TitleText>
-      <StackingDescriptionText>{t('XVERSE_POOL')}</StackingDescriptionText>
+      <StackingDescriptionText>{t('DELEGATED_POOL')}</StackingDescriptionText>
       <StackingStatusTile />
     </Container>
   );

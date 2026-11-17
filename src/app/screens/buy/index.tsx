@@ -1,7 +1,6 @@
 import MoonPay from '@assets/img/dashboard/moonpay.svg';
 import PayPal from '@assets/img/dashboard/paypal.svg';
 import Transak from '@assets/img/dashboard/transak.svg';
-import XverseSwaps from '@assets/img/dashboard/xverse_swaps_logo.svg';
 import BottomBar from '@components/tabBar';
 import TopRow from '@components/topRow';
 import useHasFeature from '@hooks/useHasFeature';
@@ -128,14 +127,6 @@ function Buy() {
         )}
         <Title>{`${t('BUY')} ${currency}`}</Title>
         <Text>{t('PURCHASE_CRYPTO')}</Text>
-        {currency === 'BTC' && (
-          <RedirectButton
-            text={t('XVERSE_SWAPS')}
-            subText={t('XVERSE_SWAPS_DESC')}
-            src={XverseSwaps}
-            onClick={() => openUrl('https://wallet.xverse.app/swaps')}
-          />
-        )}
         <RedirectButton text={t('MOONPAY')} src={MoonPay} onClick={getMoonPayUrl} />
         <RedirectButton text={t('TRANSAK')} src={Transak} onClick={getTransacUrl} />
         {showPaypal && (

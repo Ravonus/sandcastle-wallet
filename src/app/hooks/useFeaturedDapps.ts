@@ -4,6 +4,11 @@ import { useEffect, useState } from 'react';
 import useWalletSelector from './useWalletSelector';
 import useWalletSession from './useWalletSession';
 
+function isExternalApp(url: string) {
+  const hostname = URL.canParse(url) ? new URL(url).hostname : '';
+  return hostname && hostname !== 'xverse.app' && !hostname.endsWith('.xverse.app');
+}
+
 function useFeaturedDapps() {
   const { network } = useWalletSelector();
   const { getSessionStartTime } = useWalletSession();
@@ -21,8 +26,14 @@ function useFeaturedDapps() {
   const fetchFeaturedDapps = async () => {
     const response = await getFeaturedDapps(network.type);
 
-    const featured = response.find((f) => f.section === 'Featured')?.apps ?? [];
-    const recommended = response.find((f) => f.section === 'Recommended')?.apps ?? [];
+    const featured =
+      response
+        .find((f) => f.section === 'Featured')
+        ?.apps.filter(({ url }) => isExternalApp(url)) ?? [];
+    const recommended =
+      response
+        .find((f) => f.section === 'Recommended')
+        ?.apps.filter(({ url }) => isExternalApp(url)) ?? [];
 
     const categories = new Set(
       recommended.map((r) => r.category).filter((c): c is string => c !== undefined),

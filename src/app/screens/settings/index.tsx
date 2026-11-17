@@ -1,6 +1,5 @@
 import BottomBar from '@components/tabBar';
 import useWalletSelector from '@hooks/useWalletSelector';
-import { SUPPORT_LINK } from '@utils/constants';
 import RoutePaths from 'app/routes/paths';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -26,10 +25,6 @@ function Setting() {
   const { network } = useWalletSelector();
 
   const navigate = useNavigate();
-
-  const openSupport = () => {
-    window.open(SUPPORT_LINK);
-  };
 
   const openChangeNetworkScreen = () => {
     navigate(RoutePaths.ChangeNetwork);
@@ -75,7 +70,6 @@ function Setting() {
         />
 
         <SettingComponent text={t('CATEGORIES.ABOUT')} onClick={openAbout} showDivider />
-        <SettingComponent text={t('SUPPORT_CENTER')} onClick={openSupport} link />
       </Container>
 
       <BottomBar tab="settings" />

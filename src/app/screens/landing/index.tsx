@@ -1,18 +1,15 @@
-import animationData from '@assets/animation/full_logo_horizontal.json';
-import logo from '@assets/img/full_logo_horizontal.svg';
 import onboarding1 from '@assets/img/landing/onboarding1.svg';
 import onboarding2 from '@assets/img/landing/onboarding2.svg';
+import logo from '@assets/img/sandcastle/wordmark.svg';
 import Dots from '@components/dots';
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 import { isInOptions } from '@utils/helper';
 import { getIsTermsAccepted } from '@utils/localStorage';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Lottie from 'react-lottie';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'styled-components';
 import {
-  AnimationContainer,
   AppVersion,
   ArrowContainer,
   BottomContainer,
@@ -35,13 +32,9 @@ import {
 function Landing() {
   const { t } = useTranslation('translation', { keyPrefix: 'LANDING_SCREEN' });
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [animationComplete, setAnimationComplete] = useState(
-    process.env.SKIP_ANIMATION_WALLET_STARTUP === 'true',
-  );
   const [slideTransitions, setSlideTransitions] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<'left' | 'right'>('right');
   const navigate = useNavigate();
-  const isGalleryOpen: boolean = useMemo(() => document.documentElement.clientWidth > 360, []);
 
   const theme = useTheme();
   const onboardingViews = [
@@ -101,7 +94,7 @@ function Landing() {
 
   const renderLandingSection = () => (
     <>
-      <Logo src={onboardingViews[0].image} alt="logo" />
+      <Logo src={onboardingViews[0].image} alt="Sandcastle Wallet" />
       <LandingTitle>{onboardingViews[0].title}</LandingTitle>
     </>
   );
@@ -167,7 +160,7 @@ function Landing() {
     } else {
       return (
         <InitialTransitionLandingSectionContainer>
-          <Logo src={onboardingViews[0].image} alt="logo" />
+          <Logo src={onboardingViews[0].image} alt="Sandcastle Wallet" />
           <LandingTitle>{onboardingViews[0].title}</LandingTitle>
         </InitialTransitionLandingSectionContainer>
       );
@@ -177,56 +170,41 @@ function Landing() {
   return (
     <Container>
       <AppVersion>{t('BETA')}</AppVersion>
-      {animationComplete ? (
-        <Container>
-          <ArrowContainer>
-            <CaretButton $disabled={currentStepIndex <= 0} onClick={handleClickBack}>
-              <CaretLeft
-                size={theme.space.l}
-                color={theme.colors.white_0}
-                opacity={currentStepIndex > 0 ? '100%' : '60%'}
-              />
-            </CaretButton>
-            <CaretButton
-              $disabled={currentStepIndex >= onboardingViews.length - 1}
-              onClick={handleClickNext}
-            >
-              <CaretRight
-                size={theme.space.l}
-                color={theme.colors.white_0}
-                opacity={currentStepIndex < onboardingViews.length - 1 ? '100%' : '60%'}
-              />
-            </CaretButton>
-          </ArrowContainer>
-          {renderTransitions()}
-          <BottomContainer>
-            <Dots
-              numDots={onboardingViews.length}
-              activeIndex={currentStepIndex}
-              handleClickDot={handleClickDot}
+      <Container>
+        <ArrowContainer>
+          <CaretButton $disabled={currentStepIndex <= 0} onClick={handleClickBack}>
+            <CaretLeft
+              size={theme.space.l}
+              color={theme.colors.white_0}
+              opacity={currentStepIndex > 0 ? '100%' : '60%'}
             />
-            <CreateButton onClick={() => proceedToWallet()} title={t('CREATE_WALLET_BUTTON')} />
-            <RestoreButton
-              variant="secondary"
-              onClick={() => proceedToWallet(true)}
-              title={t('RESTORE_WALLET_BUTTON')}
+          </CaretButton>
+          <CaretButton
+            $disabled={currentStepIndex >= onboardingViews.length - 1}
+            onClick={handleClickNext}
+          >
+            <CaretRight
+              size={theme.space.l}
+              color={theme.colors.white_0}
+              opacity={currentStepIndex < onboardingViews.length - 1 ? '100%' : '60%'}
             />
-          </BottomContainer>
-        </Container>
-      ) : (
-        <AnimationContainer>
-          <Lottie
-            options={{ loop: false, animationData }}
-            width={isGalleryOpen ? '42.5%' : '70%'}
-            eventListeners={[
-              {
-                eventName: 'complete',
-                callback: () => setTimeout(() => setAnimationComplete(true), 1000),
-              },
-            ]}
+          </CaretButton>
+        </ArrowContainer>
+        {renderTransitions()}
+        <BottomContainer>
+          <Dots
+            numDots={onboardingViews.length}
+            activeIndex={currentStepIndex}
+            handleClickDot={handleClickDot}
           />
-        </AnimationContainer>
-      )}
+          <CreateButton onClick={() => proceedToWallet()} title={t('CREATE_WALLET_BUTTON')} />
+          <RestoreButton
+            variant="secondary"
+            onClick={() => proceedToWallet(true)}
+            title={t('RESTORE_WALLET_BUTTON')}
+          />
+        </BottomContainer>
+      </Container>
     </Container>
   );
 }

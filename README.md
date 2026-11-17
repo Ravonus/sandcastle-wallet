@@ -1,4 +1,6 @@
-# xverse-extension
+# Sandcastle Wallet
+
+Sandcastle Wallet uses the Xverse browser extension and wallet core. The original programs are copyright Secret Key Labs Limited. This independent derivative is distributed solely for Non-Commercial Use under the enclosed licences. It is not affiliated with or endorsed by Xverse or Secret Key Labs.
 
 ## Building with the local core
 

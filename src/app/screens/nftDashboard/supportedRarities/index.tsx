@@ -1,8 +1,5 @@
 import TopRow from '@components/topRow';
-import { ArrowUpRight } from '@phosphor-icons/react';
 import { RodarmorRareSats, Satributes } from '@secretkeylabs/xverse-core';
-import { StyledP } from '@ui-library/common.styled';
-import { BLOG_LINK } from '@utils/constants';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -33,14 +30,6 @@ const TypesContainer = styled.div((props) => ({
   marginTop: props.theme.spacing(6),
 }));
 
-const ButtonImage = styled.button((props) => ({
-  backgroundColor: 'transparent',
-  display: 'flex',
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginTop: props.theme.spacing(6),
-}));
-
 const Container = styled.div<ContainerProps>((props) => ({
   width: props.isGallery ? 580 : '100%',
 }));
@@ -62,9 +51,6 @@ function SupportedRarities() {
 
   const isGalleryOpen: boolean = document.documentElement.clientWidth > 360;
 
-  const openLearnMoreLink = () =>
-    window.open(`${BLOG_LINK}/rare-satoshis`, '_blank', 'noopener,noreferrer');
-
   return (
     <MainContainer>
       <Container isGallery={isGalleryOpen}>
@@ -76,13 +62,6 @@ function SupportedRarities() {
         />
         <ContentContainer>
           <TopText>{t('RARITY_DETAIL.RARITY_INFO')}</TopText>
-          <ButtonImage onClick={openLearnMoreLink}>
-            <StyledP typography="body_medium_m" color="orange_main">
-              {t('RARITY_DETAIL.LEARN_MORE')}
-            </StyledP>
-            <ArrowUpRight size="16" color={Theme.colors.tangerine} />
-          </ButtonImage>
-
           <TypesContainer>
             {rarityTypes.map((type) => (
               <RarityTile type={type} key={type} />

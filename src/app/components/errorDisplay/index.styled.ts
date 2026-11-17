@@ -79,11 +79,6 @@ export const ErrorDescription = styled.div((props) => ({
   color: props.theme.colors.white_200,
 }));
 
-export const SupportEmail = styled.a((props) => ({
-  ...props.theme.typography.body_m,
-  color: props.theme.colors.white_0,
-}));
-
 export const ErrorStackContainer = styled.div((props) => ({
   marginTop: props.theme.space.xs,
 }));
@@ -173,7 +168,7 @@ export const FullScreenHeader = styled.div((props) => ({
   },
 }));
 
-export const XverseLogo = styled.img({
+export const WalletLogo = styled.img({
   width: '99px',
   height: '18px',
 });

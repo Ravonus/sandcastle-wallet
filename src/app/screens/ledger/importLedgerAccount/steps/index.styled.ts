@@ -234,10 +234,6 @@ export const TogglerText = styled.p((props) => ({
   lineHeight: '140%',
 }));
 
-export const CustomLink = styled.a((props) => ({
-  color: props.theme.colors.orange_main,
-}));
-
 export const WarningIcon = styled.img({
   width: 32,
   height: 32,

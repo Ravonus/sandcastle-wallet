@@ -158,9 +158,15 @@ function makeConfig(opts) {
       }),
       new CopyWebpackPlugin({
         patterns: [
+          ...[16, 32, 48, 128].map((size) => ({
+            from: path.join(SRC_ROOT_PATH, `assets/img/sandcastle/icon-${size}.png`),
+          })),
+          { from: 'LICENSE' },
+          { from: 'NOTICE' },
           {
-            from: path.join(SRC_ROOT_PATH, 'assets/img/xverse_icon.png'),
-            to: buildRootPath,
+            from: path.join(walletModules, '@secretkeylabs/xverse-core/LICENSE'),
+            to: 'LICENSE-core',
+            toType: 'file',
           },
         ],
       }),

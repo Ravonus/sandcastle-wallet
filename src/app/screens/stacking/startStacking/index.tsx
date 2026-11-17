@@ -1,13 +1,10 @@
 import useStackingData from '@hooks/queries/useStackingData';
 import type { Pool } from '@secretkeylabs/xverse-core';
 import { microstacksToStx } from '@secretkeylabs/xverse-core';
-import Button from '@ui-library/button';
-import { XVERSE_STACKING_URL } from '@utils/constants';
 import BigNumber from 'bignumber.js';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from 'styled-components';
 import {
-  ButtonContainer,
   ColumnContainer,
   Container,
   OuterContainer,
@@ -31,40 +28,30 @@ function StartStacking() {
     return microstacksToStx(new BigNumber(min)).toString();
   };
 
-  const handleOnClick = () => {
-    window.open(XVERSE_STACKING_URL);
-  };
-
   return (
-    <>
-      <OuterContainer>
-        <Container>
-          <TitleText>{t('STACK_AND_EARN')}</TitleText>
-          <StackingDescriptionText>{t('STACKING_INFO')}</StackingDescriptionText>
-        </Container>
-        <StackingInfoContainer>
-          <ColumnContainer>
-            <StackingInfoTile
-              title={t('APY')}
-              value={pool ? `${pool?.estimated_yield}%` : undefined}
-            />
-            <StackingInfoTile title={t('MINIMUM_AMOUNT')} value={`${getMinimum()} STX`} />
-          </ColumnContainer>
-          <ColumnContainer>
-            <StackingInfoTile
-              title={t('POOL_FEE')}
-              value={pool ? `${pool?.fee_percent}%` : undefined}
-              color={theme.colors.success_medium}
-            />
-            <StackingInfoTile title={t('REWARD_CYCLES')} value="Flexible" />
-          </ColumnContainer>
-        </StackingInfoContainer>
-      </OuterContainer>
-
-      <ButtonContainer>
-        <Button title={t('START_STACKING')} onClick={handleOnClick} />
-      </ButtonContainer>
-    </>
+    <OuterContainer>
+      <Container>
+        <TitleText>{t('STACK_AND_EARN')}</TitleText>
+        <StackingDescriptionText>{t('STACKING_INFO')}</StackingDescriptionText>
+      </Container>
+      <StackingInfoContainer>
+        <ColumnContainer>
+          <StackingInfoTile
+            title={t('APY')}
+            value={pool ? `${pool?.estimated_yield}%` : undefined}
+          />
+          <StackingInfoTile title={t('MINIMUM_AMOUNT')} value={`${getMinimum()} STX`} />
+        </ColumnContainer>
+        <ColumnContainer>
+          <StackingInfoTile
+            title={t('POOL_FEE')}
+            value={pool ? `${pool?.fee_percent}%` : undefined}
+            color={theme.colors.success_medium}
+          />
+          <StackingInfoTile title={t('REWARD_CYCLES')} value="Flexible" />
+        </ColumnContainer>
+      </StackingInfoContainer>
+    </OuterContainer>
   );
 }
 

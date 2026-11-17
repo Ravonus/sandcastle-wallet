@@ -1,5 +1,3 @@
-import { AnalyticsEvents } from '@secretkeylabs/xverse-core';
-import { trackMixPanel } from '@utils/mixpanel';
 import styled from 'styled-components';
 
 const Container = styled.div`
@@ -65,22 +63,7 @@ function RecommendedApps({ items }: Props) {
         <Card
           data-testid="app-card"
           key={item.url}
-          onClick={() => {
-            trackMixPanel(
-              AnalyticsEvents.ClickApp,
-              {
-                title: item.name,
-                link: item.url,
-                section: 'recommended',
-                source: 'web-extension',
-              },
-              { send_immediately: true },
-              () => {
-                window.open(item.url, '_blank');
-              },
-              'explore-app',
-            );
-          }}
+          onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
         >
           <CardImage src={item.icon} />
           <div>

@@ -14,7 +14,6 @@ import { animated, useSpring } from '@react-spring/web';
 import { AddressPurpose } from '@sats-connect/core';
 import SelectAccount from '@screens/connect/selectAccount';
 import {
-  AnalyticsEvents,
   createAuthResponse,
   handleLedgerStxJWTAuth,
   type AuthRequest,
@@ -23,7 +22,6 @@ import { Address } from '@stacks/transactions';
 import Callout from '@ui-library/callout';
 import { StickyHorizontalSplitButtonContainer } from '@ui-library/common.styled';
 import { isHardwareAccount } from '@utils/helper';
-import { trackMixPanel } from '@utils/mixpanel';
 import RoutePaths from 'app/routes/paths';
 import { decodeToken } from 'jsontokens';
 import { useCallback, useState } from 'react';
@@ -151,17 +149,7 @@ function AuthenticationRequest() {
         },
         method: 'authenticationResponse',
       });
-      trackMixPanel(
-        AnalyticsEvents.AppConnected,
-        {
-          requestedAddress: [AddressPurpose.Stacks, AddressPurpose.Payment],
-          wallet_type: selectedAccount?.accountType || 'software',
-        },
-        { send_immediately: true },
-        () => {
-          window.close();
-        },
-      );
+      window.close();
     } catch (e) {
       console.error(e);
     } finally {
@@ -239,17 +227,7 @@ function AuthenticationRequest() {
         },
         method: 'authenticationResponse',
       });
-      trackMixPanel(
-        AnalyticsEvents.AppConnected,
-        {
-          requestedAddress: [AddressPurpose.Stacks, AddressPurpose.Payment],
-          wallet_type: selectedAccount?.accountType || 'software',
-        },
-        { send_immediately: true },
-        () => {
-          window.close();
-        },
-      );
+      window.close();
     } catch (e) {
       setIsTxRejected(true);
       setIsButtonDisabled(false);

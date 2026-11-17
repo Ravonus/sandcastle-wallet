@@ -1,6 +1,6 @@
 import Eye from '@assets/img/createPassword/Eye.svg';
 import EyeSlash from '@assets/img/createPassword/EyeSlash.svg';
-import logo from '@assets/img/xverse_logo.svg';
+import logo from '@assets/img/sandcastle/icon.svg';
 import useSeedVault from '@hooks/useSeedVault';
 import useSeedVaultMigration from '@hooks/useSeedVaultMigration';
 import useWalletReducer from '@hooks/useWalletReducer';
@@ -135,7 +135,7 @@ function Login(): JSX.Element {
           <AppVersion>{t('BETA_VERSION')}</AppVersion>
           <ContentContainer style={styles}>
             <TopSectionContainer>
-              <Logo src={logo} />
+              <Logo src={logo} alt="Sandcastle Wallet" />
               <LandingTitle>{t('WELCOME_MESSAGE_FIRST_LOGIN')}</LandingTitle>
             </TopSectionContainer>
             <PasswordInputLabel>{t('PASSWORD_INPUT_LABEL')}</PasswordInputLabel>

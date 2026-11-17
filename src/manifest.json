@@ -1,12 +1,17 @@
 {
-  "name": "Xverse Wallet: Buy Bitcoin",
-  "description": "Ordinals, Runes, NFTs & DeFi",
+  "name": "Sandcastle Wallet",
+  "description": "Developer test wallet for local Bitcoin regtest networks (unofficial fork, not Xverse)",
   "manifest_version": 3,
   "options_page": "options.html",
   "action": {
     "default_popup": "popup.html",
-    "default_icon": "xverse_icon.png",
-    "default_title": "Xverse Wallet: Buy Bitcoin"
+    "default_icon": {
+      "16": "icon-16.png",
+      "32": "icon-32.png",
+      "48": "icon-48.png",
+      "128": "icon-128.png"
+    },
+    "default_title": "Sandcastle Wallet"
   },
   "chrome_url_overrides": {},
   "background": {
@@ -14,7 +19,10 @@
     "type": "module"
   },
   "icons": {
-    "128": "xverse_icon.png"
+    "16": "icon-16.png",
+    "32": "icon-32.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
   },
   "web_accessible_resources": [{ "resources": ["inpage.js"], "matches": ["*://*/*"] }],
   "host_permissions": ["*://*/*"],

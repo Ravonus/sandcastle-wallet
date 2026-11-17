@@ -101,16 +101,6 @@ export const CaretButton = styled.button<{ $disabled: boolean }>((props) => ({
   },
 }));
 
-export const AnimationContainer = styled.div({
-  marginTop: '60%',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  [`@media ${devices.min.xs}`]: {
-    marginTop: '35%',
-  },
-});
-
 const LandingSectionContainer = styled.div({
   marginTop: '50%',
   marginBottom: '88px',

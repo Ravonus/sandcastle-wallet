@@ -1,4 +1,4 @@
-import xverseLogoIcon from '@assets/img/full_logo_horizontal.svg';
+import walletLogo from '@assets/img/sandcastle/wordmark.svg';
 import {
   ActionButtons,
   ErrorCode,
@@ -17,16 +17,14 @@ import {
   ScreenContainer,
   StackDetails,
   StackToggle,
-  SupportEmail,
   TestnetContainer,
   TestnetText,
-  XverseLogo,
+  WalletLogo,
 } from '@components/errorDisplay/index.styled';
 import useWalletSelector from '@hooks/useWalletSelector';
 import { CaretDown, CaretUp, Copy, WarningOctagon } from '@phosphor-icons/react';
 import Button from '@ui-library/button';
 import { StyledP } from '@ui-library/common.styled';
-import { SUPPORT_EMAIL } from '@utils/constants';
 import { isInOptions } from '@utils/helper';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
@@ -81,7 +79,7 @@ function ErrorDisplay({ error }: Props) {
     <ScreenContainer>
       {isInOption && (
         <FullScreenHeader>
-          <XverseLogo src={xverseLogoIcon} />
+          <WalletLogo src={walletLogo} alt="Sandcastle Wallet" />
         </FullScreenHeader>
       )}
       <RouteContainer>
@@ -112,10 +110,6 @@ function ErrorDisplay({ error }: Props) {
             {errorT('ERROR_CODE_MESSAGE', { code: status, message: statusText })}
           </ErrorDescription>
           {description && <ErrorDescription>Error description: {description}</ErrorDescription>}
-          <ErrorDescription>
-            {errorT('CONTACT_SUPPORT')}{' '}
-            <SupportEmail href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</SupportEmail>
-          </ErrorDescription>
           {stack && (
             <ErrorStackContainer>
               <StackToggle onClick={() => setShowStack(!showStack)}>
@@ -159,7 +153,7 @@ function ErrorDisplay({ error }: Props) {
               variant="secondary"
             />
             <Button
-              title={errorT('RESTART_XVERSE')}
+              title={errorT('RESTART_WALLET')}
               onClick={() => navigate('/')}
               variant="primary"
             />

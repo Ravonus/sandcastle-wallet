@@ -164,7 +164,7 @@ function ExecuteBrc20Transaction() {
       title: t('TRANSACTION_HEADLINE', { status: 'Failed' }),
       description: (
         <>
-          {t('XVERSE_WALLET_ROUTER')}
+          {t('WALLET_ROUTER')}
           <br />
           {errorCode}
         </>
