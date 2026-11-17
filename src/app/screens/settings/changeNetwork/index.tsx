@@ -143,12 +143,26 @@ function ChangeNetworkScreen() {
     setIsChangingNetwork(true);
     setSaveError('');
     if (isRegtest) {
+      const btcApiUrl = normalizeRegtestEndpoint(formInputs.btcApiUrl, 'bitcoin');
+      const ordApiUrl = normalizeRegtestEndpoint(formInputs.ordApiUrl ?? '', 'ord');
+      if (btcApiUrl === undefined || ordApiUrl === undefined) {
+        setFormErrors({
+          ...initialNodeErrors,
+          btcApiUrl: btcApiUrl === undefined ? t('INVALID_URL') : '',
+          ordApiUrl: ordApiUrl === undefined ? t('INVALID_URL') : '',
+        });
+        setCanSaveAnyway(false);
+        setIsChangingNetwork(false);
+        return;
+      }
+      setFormInputs((previous) => ({ ...previous, btcApiUrl, ordApiUrl }));
+
       const settings = {
         ...formInputs,
         address: '',
         fallbackBtcApiUrl: '',
-        btcApiUrl: normalizeRegtestEndpoint(formInputs.btcApiUrl),
-        ordApiUrl: normalizeRegtestEndpoint(formInputs.ordApiUrl ?? ''),
+        btcApiUrl,
+        ordApiUrl,
       };
 
       try {

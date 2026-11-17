@@ -1,15 +1,11 @@
-import { getRegtestInscriptionContentUrl, type SettingsNetwork } from '@secretkeylabs/xverse-core';
+import { regtestApiUrl, type SettingsNetwork } from '@secretkeylabs/xverse-core';
 
-export const normalizeRegtestEndpoint = (value: string) => value.trim().replace(/\/+$/, '');
-
-function isHttpEndpoint(value: string) {
+export function normalizeRegtestEndpoint(value: string, endpoint: 'bitcoin' | 'ord') {
+  if (!value.trim()) return '';
   try {
-    const url = new URL(value);
-    // Core rejects legacy hosted bases as well as malformed URLs.
-    getRegtestInscriptionContentUrl(url.href, 'validation');
-    return /^https?:\/\//i.test(value) && !/[?#]/.test(value);
+    return regtestApiUrl(value, endpoint);
   } catch {
-    return false;
+    return undefined;
   }
 }
 
@@ -19,9 +15,9 @@ async function check(
   pattern: RegExp,
   signal: AbortSignal,
 ): Promise<boolean> {
-  if (!isHttpEndpoint(base)) return false;
   try {
-    const response = await fetch(`${base}${route}`, {
+    const endpoint = route.startsWith('/r/') ? 'ord' : 'bitcoin';
+    const response = await fetch(`${regtestApiUrl(base, endpoint)}${route}`, {
       signal,
       credentials: 'omit',
       redirect: 'error',
